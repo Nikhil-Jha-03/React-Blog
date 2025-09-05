@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     lastOtpSentAt: { type: number, default: 0 },
     otpFailedAttempts: { type: number, default: 0 },
     otpBlockedUntil: { type: number, default: 0 }
-})
+},{timestamps:true})
 
 
 const userModel = mongoose.model('User', userSchema)
