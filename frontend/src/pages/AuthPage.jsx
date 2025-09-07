@@ -1,34 +1,38 @@
-import React, { useState, useNavigate } from 'react'
+import React, { useState, useNavigate, useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import Input from '../components/Input'
 import Button from '../components/Button'
+import { useSelector, useDispatch } from 'react-redux'
+import { signup_user, login_user } from '../features/auth/authSlice'
+import { toast } from 'react-toastify'
 
 
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false)
-  // const navigate = useNavigate()
-
+  const dispatch = useDispatch()
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
+    reset
   } = useForm()
 
   const onSubmit = (data) => {
-    const {name,email,password} = data;
-    if (!name) {
-      console.log("for login")
+    const { name, email, password } = data;
+
+    if (!name && email && password) {
+      dispatch(login_user(data))
+      return reset();
     }
 
     if (name && email && password) {
-      console.log("For Signup")
+      dispatch(signup_user(data))
+      return reset();
     }
-    console.log(name,email,password)
 
+    reset();
   }
-
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center p-4 '>
@@ -85,9 +89,25 @@ const AuthPage = () => {
               </div>
 
               <div className='w-full flex-col transition'>
-                {/* <Input label='Email' name='email' placeholder='Email Address' onchange={(e) => setPassword(e.currentTarget.value)} />
-                <Input label='Password' name='password' placeholder='Password' onchange={(e) => setPassword(e.currentTarget.value)} />
-                <Button onclick={clickHandlerSignIn} classNametext={'mt-6 !bg-black !text-white'} text={"Sign In"} /> */}
+                <Input name='email' placeholder='Email Address' registerProp={register("email", {
+                  required: "Email is required",
+                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" }
+                })} error={errors.email} />
+
+                <Input
+                  name="password"
+                  placeholder="Password"
+                  registerProp={register("password", {
+                    required: "Password is required",
+                    pattern: {
+                      value: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^_&*]).{6,}$/,
+                      message:
+                        "Password must be at least 6 characters, include 1 uppercase letter, 1 number, and 1 special character"
+                    },
+                  })}
+                  error={errors.password}
+                />
+                <Button type='submit' classNametext={'mt-6 !bg-black !text-white'} text={"Create Account"} />
               </div>
             </div>
 

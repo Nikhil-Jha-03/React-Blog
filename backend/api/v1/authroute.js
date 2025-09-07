@@ -68,11 +68,10 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-
+console.log("first")
   try {
 
     const parsedData = RegisterUser.safeParse(req.body);
-
     if (!parsedData.success) {
       const formattedErrors = parsedData.error.issues.map(e => ({
         field: e.path.join("."),
@@ -88,7 +87,7 @@ router.post("/register", async (req, res) => {
 
     const userAlreadyExist = await userModel.findOne({ email: email })
     if (userAlreadyExist) {
-      return res.status(401).json({
+      return res.status(409).json({
         success: false,
         message: "Account already exist"
       })

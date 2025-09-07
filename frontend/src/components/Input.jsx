@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Input = ({ type = "text", name, placeholder, registerProp, error }) => {
+const Input = ({ type = "text", name, placeholder, registerProp, error}) => {
     return (
         <div className="flex flex-col gap-2 w-full">
             {/* Label */}
