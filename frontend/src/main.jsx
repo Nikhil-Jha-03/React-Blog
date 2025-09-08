@@ -2,21 +2,25 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './app/store.js'
-import {ToastContainer} from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route>
 
-
-createRoot(document.getElementById('root')).render(
-    <BrowserRouter>
-      <Provider store={store}>
-        <ToastContainer position="top-right" autoClose={3000} />
-        <App />
-      </Provider>
-    </BrowserRouter>
+    </Route>
+  )
 )
 
 
-//auth redux for signup and signin
+createRoot(document.getElementById('root')).render(
+  <BrowserRouter>
+    <Provider store={store}>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <App />
+    </Provider>
+  </BrowserRouter>
+)

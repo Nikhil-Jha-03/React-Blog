@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { string } from "zod";
+import { boolean, string } from "zod";
 
 const postSchema = new mongoose.Schema({
     title: { type: string, require: true },
@@ -15,6 +15,7 @@ const postSchema = new mongoose.Schema({
     }],
     views: { type: Number, default: 0 },
     status: { type: String, enum: ["draft", "published"], default: "published" },
+    feature: { type: boolean, default: false }
 }, { timestamps: true })
 
 const postModel = mongoose.model('Post', postSchema)

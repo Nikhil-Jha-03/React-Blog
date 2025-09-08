@@ -1,12 +1,9 @@
-import React, { useState, useNavigate, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from "react-hook-form"
 import Input from '../components/Input'
 import Button from '../components/Button'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { signup_user, login_user } from '../features/auth/authSlice'
-import { toast } from 'react-toastify'
-
-
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false)
