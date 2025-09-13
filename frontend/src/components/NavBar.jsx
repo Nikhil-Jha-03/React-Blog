@@ -2,11 +2,18 @@ import { useEffect, useState } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import NavLinkComponent from './NavLinkComponent'
 import UserInfo from './UserInfo'
+import { useSelector, useDispatch } from 'react-redux'
 
 const NavBar = () => {
-  const [scrollY, setScrollY] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showUser, setShowUser] = useState(false)
+  const [scrollY, setScrollY] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showUser, setShowUser] = useState(false);
+  const dispatch = useDispatch();
+
+  const newUser = useSelector(state => state.user.value);
+console.log(newUser);
+
+  const isUserLoggedIn = useSelector(state => state.auth);
 
   const [user, setUser] = useState({
     isLoggedIn: false,
@@ -29,6 +36,7 @@ const NavBar = () => {
       linkedin: "https://linkedin.com/in/nikhil"
     }
   });
+
 
 
   useEffect(() => {

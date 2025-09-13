@@ -68,7 +68,6 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-console.log("first")
   try {
 
     const parsedData = RegisterUser.safeParse(req.body);
@@ -141,7 +140,7 @@ console.log("first")
 
 router.get("/getCurrentUser", isLoggedIn, async (req, res) => {
   try {
-    const user = await userModel.findOne({ email: req.user.email }).select("-password");
+    const user = await userModel.findOne({ _id: req.userId }).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -154,6 +153,7 @@ router.get("/getCurrentUser", isLoggedIn, async (req, res) => {
       success: true,
       user
     });
+
   } catch (error) {
     console.error("Error fetching current user:", error);
     return res.status(500).json({
