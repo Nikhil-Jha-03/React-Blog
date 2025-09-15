@@ -4,10 +4,13 @@ import Input from '../components/Input'
 import Button from '../components/Button'
 import { useDispatch } from 'react-redux'
 import { signup_user, login_user } from '../features/auth/authSlice'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -15,20 +18,33 @@ const AuthPage = () => {
     reset
   } = useForm()
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const { name, email, password } = data;
 
     if (!name && email && password) {
-      dispatch(login_user(data))
-      return reset();
+      const result = await dispatch(login_user(data))
+      if (login_user.fulfilled.match(result)) {
+        navigate("/")
+        toast.success("Successfull Login")
+      } else {
+        toast.error(result.payload?.message || "Login Failed. Try Again")
+      }
+      reset();
+      return
     }
 
     if (name && email && password) {
-      dispatch(signup_user(data))
-      return reset();
+      const result = await dispatch(signup_user(data));
+      if (signup_user.fulfilled.match(result)) {
+        navigate("/");
+        toast.success("Signup successful");
+      } else {
+        toast.error(result.payload?.message || "Signup Failed. Try Again")
+      }
+      reset();
+      return
     }
-
-    reset();
+    return
   }
 
   return (

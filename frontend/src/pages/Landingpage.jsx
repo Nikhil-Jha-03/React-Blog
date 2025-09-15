@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Users, TrendingUp, Star } from 'lucide-react';
 import BlogContainer from '../components/BlogContainer';
 
 export default function LandingPage() {
+  
   const stats = [
     { icon: BookOpen, value: "250+", label: "Articles" },
     { icon: Users, value: "10K+", label: "Readers" },
@@ -15,6 +16,20 @@ export default function LandingPage() {
     { title: "Mastering the Art of Storytelling", excerpt: "How to craft compelling narratives that resonate with your audience.", readTime: "8 min read" },
     { title: "Design Psychology Principles", excerpt: "Understanding the psychological impact of design choices on user behavior.", readTime: "6 min read" }
   ];
+
+
+  const stars = [
+  { pos: "top-40 left-10", size: "w-2 h-2", color: "bg-white", delay: "" },
+  { pos: "top-60 right-20", size: "w-1 h-1", color: "bg-gray-500", delay: "delay-1000" },
+  { pos: "top-20 left-1/4", size: "w-1.5 h-1.5", color: "bg-gray-400", delay: "delay-500" },
+  { pos: "left-40", size: "w-1.5 h-1.5", color: "bg-gray-400", delay: "delay-500" },
+  { pos: "bottom-20 left-1/4", size: "w-1.5 h-1.5", color: "bg-gray-400", delay: "delay-500" },
+  { pos: "bottom-20 right-1/4", size: "w-1.5 h-1.5", color: "bg-gray-400", delay: "delay-500" },
+  { pos: "top-20 right-1/3", size: "w-1.5 h-1.5", color: "bg-gray-400", delay: "delay-500" },
+  { pos: "top-32 left-32", size: "w-0.5 h-0.5", color: "bg-gray-300", delay: "delay-[200ms]" },
+  { pos: "top-16 right-16", size: "w-3 h-3", color: "bg-white", delay: "delay-[700ms]" },
+  { pos: "top-80 left-16", size: "w-1 h-1", color: "bg-gray-600", delay: "delay-[300ms]" },
+];
 
   return (
     <div className='bg-black'>
@@ -47,13 +62,12 @@ export default function LandingPage() {
         </div>
 
         {/* Floating Elements */}
-        <div className="absolute top-40 left-10 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-        <div className="absolute top-60 right-20 w-1 h-1 bg-gray-500 rounded-full animate-pulse delay-1000"></div>
-        <div className="absolute top-20 left-1/4 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse delay-500"></div>
-        <div className="absolute left-40 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse delay-500"></div>
-        <div className="absolute bottom-20 left-1/4 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse delay-500"></div>
-        <div className="absolute bottom-20 right-1/4 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse delay-500"></div>
-        <div className="absolute top-20 right-1/3 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse delay-500"></div>
+        {stars.map((star, i) => (
+        <div
+          key={i}
+          className={`absolute ${star.pos} ${star.size} ${star.color} rounded-full animate-pulse ${star.delay}`}
+        ></div>
+      ))}
       </section>
 
 

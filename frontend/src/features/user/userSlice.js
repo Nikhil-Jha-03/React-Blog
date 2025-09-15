@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from '../../api/axios.js'
-import { toast } from "react-toastify";
 
 const initialState = {
     value: null
@@ -33,15 +32,10 @@ const userSlice = createSlice({
     extraReducers: (builder) => {
         builder.
             addCase(getCurrentUser.fulfilled, (state, action) => {
-                console.log("running")
-                toast.success("Done")
                 state.value = action.payload.user
             })
             .addCase(getCurrentUser.rejected, (state, action) => {
-                console.log("rejected")
                 state.value = null
-                toast.success("Noooo")
-
             })
     }
 })

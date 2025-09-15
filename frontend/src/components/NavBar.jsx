@@ -2,42 +2,27 @@ import { useEffect, useState } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import NavLinkComponent from './NavLinkComponent'
 import UserInfo from './UserInfo'
+import { useNavigate, Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
+import { getCurrentUser } from '../features/user/userSlice'
 
 const NavBar = () => {
   const [scrollY, setScrollY] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUser, setShowUser] = useState(false);
+  const navigate = useNavigate()
   const dispatch = useDispatch();
 
-  const newUser = useSelector(state => state.user.value);
-console.log(newUser);
 
-  const isUserLoggedIn = useSelector(state => state.auth);
+  const auth = useSelector(state => state.auth) || {};
 
-  const [user, setUser] = useState({
-    isLoggedIn: false,
-    name: "Nikhil Jha",
-    email: "jhanikhil2083@gmail.com",
-    username: "nikhil",
-    avatar: "https://unsplash.com/photos/a-black-and-white-photo-of-a-network-of-dots-nv3Z-1Nsd3g",
-    isVerified: true,
-    bio: "Web developer passionate about backend & full-stack.",
-    totalPosts: 25,
-    totalLikes: 120,
-    totalViews: 5400,
-    followers: 300,
-    joinDate: "2024-01-15",
-    location: "Pune, India",
-    website: "https://myportfolio.com",
-    socialLinks: {
-      twitter: "https://twitter.com/nikhil",
-      github: "https://github.com/nikhil",
-      linkedin: "https://linkedin.com/in/nikhil"
+
+
+  useEffect(() => {
+    if (auth.isLoggedIn) {
+      dispatch(getCurrentUser(auth.token))
     }
-  });
-
-
+  }, [auth, dispatch])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,7 +54,8 @@ console.log(newUser);
               <NavLinkComponent to={'/'} name={"Home"} />
               <NavLinkComponent to={'/blog'} name={"Blog"} />
               <NavLinkComponent to={'/about'} name={"About"} />
-              <div className="relative">
+
+              {auth.isLoggedIn ? (<div className="relative">
                 <button
                   onClick={() => setShowUser((prev) => !prev)}
                   className="p-2 rounded-full hover:bg-gray-800 transition"
@@ -78,18 +64,15 @@ console.log(newUser);
                 </button>
 
 
-                {showUser && user?.isLoggedIn && (
-                  <UserInfo user={user} className={'absolute top-12 right-0 z-10'} />
+                {showUser && auth.isLoggedIn && (
+                  <UserInfo className={'absolute top-12 right-0 z-10'} />
                 )}
 
+              </div>) : (<Link to={"/auth"} className="bg-white text-black px-4 py-1 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 flex items-center space-x-2 hover:scale-105">
+                Please Login
+              </Link>)}
 
-                {showUser && !user?.isLoggedIn && (
-                  <button className="w-40 bg-black text-white font-medium py-2 px-4 rounded-2xl absolute top-12 right-0 z-10 shadow-lg border border-gray-600hover:bg-white hover:text-black hover:bg-white transition-all duration-200">
-                    Please Login
-                  </button>
 
-                )}
-              </div>
             </div>
             {/* Mobile Menu Button */}
             <button
@@ -109,16 +92,13 @@ console.log(newUser);
               <NavLinkComponent to={'/blog'} name={"Blog"} />
               <NavLinkComponent to={'/about'} name={"About"} />
 
-              {user.isLoggedIn ? (
-                <UserInfo user={user} />
+              {auth.isLoggedIn ? (
+                <UserInfo />
               ) : (
                 <div className="border-t border-gray-700 pt-4 mt-4 space-y-3">
-                  <button className="w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors">
-                    Login
-                  </button>
-                  <button className="w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold">
-                    Sign Up
-                  </button>
+                    <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Login</Link>
+
+                    <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Sign Up</Link>
                 </div>
               )}
             </div>
