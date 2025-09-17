@@ -3,6 +3,9 @@ import upload from "../../config/multer.js"
 import postModel from "../../Schema/postSchema.js";
 import userModel from "../../Schema/UserSchema.js";
 import imageKitKey from "../../utils/imagekit.js";
+import CategoryModel from '../../Schema/BlogCategorySchema.js'
+import generateAiDescription from "../../config/GeminiAI.js";
+
 
 const router = Router();
 
@@ -95,7 +98,7 @@ router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
             image: img_url,
             category: category,
             userId: user._id,
-            status: "published" ,
+            status: "published",
         });
 
         // await createPost.save();
@@ -103,7 +106,7 @@ router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Blog Created",
-              post: createPost
+            post: createPost
         });
     } catch (error) {
         console.error("Unexpected error:", error);
@@ -113,5 +116,101 @@ router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
         });
     }
 })
+
+router.post('/post-category', async (req, res) => {
+    try {
+        const { category } = req.body;
+
+        if (!category || category.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Category is required",
+            });
+        }
+
+        // Check if category already exists
+        const existing = await CategoryModel.findOne({ category: category.trim() });
+        if (existing) {
+            return res.status(409).json({
+                success: false,
+                message: "Category already exists",
+            });
+        }
+
+        // Create new category
+        const newCategory = new CategoryModel({ category: category.trim() });
+        await newCategory.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Category created successfully",
+            data: newCategory,
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
+// GET all categories
+router.get('/get-category', async (req, res) => {
+    try {
+        const categories = await CategoryModel.find().sort({ createdAt: -1 }); // latest first
+
+        if (!categories || categories.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No categories found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            count: categories.length,
+            data: categories,
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
+router.post('/generateAiDescription', async (req, res) => {
+
+    try {
+        const { title } = req.body
+
+        if (!title || title.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Title is required",
+            });
+        }
+        const data = await generateAiDescription(title);
+
+        return res.json({
+            success: true,
+            message: "Working",
+            data: data
+        })
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+})
+
+
+
 
 export default router

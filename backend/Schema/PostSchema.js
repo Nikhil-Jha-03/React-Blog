@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import { boolean, string } from "zod";
 
 const postSchema = new mongoose.Schema({
-    title: { type: string, require: true },
-    description: { type: string, require: true },
-    image: { type: string, require: true },
-    category: { type: string, require: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', require: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    image: { type: String, required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     like: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     comments: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -15,7 +14,7 @@ const postSchema = new mongoose.Schema({
     }],
     views: { type: Number, default: 0 },
     status: { type: String, enum: ["draft", "published"], default: "published" },
-    feature: { type: boolean, default: false }
+    feature: { type: Boolean, default: false }
 }, { timestamps: true })
 
 const postModel = mongoose.model('Post', postSchema)
