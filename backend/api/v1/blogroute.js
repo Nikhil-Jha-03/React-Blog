@@ -183,24 +183,67 @@ router.get('/get-category', async (req, res) => {
     }
 });
 
+
 router.post('/generateAiDescription', async (req, res) => {
 
     try {
-        const { title } = req.body
+        const userId = req.userId;
+        const user = await userModel.findById(userId);
 
+        if (!user) {
+            return res
+                .status(404)
+                .json({
+                    success: false,
+                    message: "User Not found"
+                })
+        };
+
+        if (user.aiCreditAvailableAt && user.aiCreditAvailableAt > Date.now()) {
+            console.log(user.aiCreditAvailableAt)
+
+            return res
+                .status(401)
+                .json({
+                    success: false,
+                    message: "Ai Credit not available try after 1 day 1"
+                })
+        }
+
+        if (user.aiCreditAvailableAt && user.aiCreditAvailableAt <= Date.now()) {
+            user.aiCredit = 3;
+            user.aiCreditAvailableAt = null;
+            await user.save();
+        }
+
+        if (user.aiCredit <= 0) {
+            user.aiCreditAvailableAt = Date.now() + 24 * 60 * 60 * 1000;
+            await user.save();
+            return res.status(401).json({
+                success: false,
+                message: "Ai Credit not available, try after 1 day"
+            });
+        }
+
+        user.aiCredit -= 1;
+
+        const { title } = req.body;
         if (!title || title.trim() === "") {
             return res.status(400).json({
                 success: false,
-                message: "Title is required",
+                message: "Title is required"
             });
         }
+
         const data = await generateAiDescription(title);
+        await user.save();
 
         return res.json({
             success: true,
             message: "Working",
             data: data
         })
+
     } catch (error) {
         console.error("Unexpected error:", error);
         return res.status(500).json({

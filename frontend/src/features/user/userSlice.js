@@ -38,11 +38,9 @@ const userSlice = createSlice({
     extraReducers: (builder) => {
         builder.
             addCase(getCurrentUser.fulfilled, (state, action) => {
-                console.log("HERE")
                 state.value = action.payload.user
             })
             .addCase(getCurrentUser.rejected, (state, action) => {
-                console.log("HERE 2")
                 state.value = null
             })
     }

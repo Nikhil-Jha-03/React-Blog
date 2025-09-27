@@ -12,8 +12,6 @@ import Layout from './pages/Layout';
 const App = () => {
   const dispatch = useDispatch();
   const isUserLoggedIn = useSelector(state => state.auth);
-  // const navigate = useNavigate();
-
   useEffect(() => {
     if (isUserLoggedIn.isLoggedIn) {
       dispatch(token_check())
@@ -36,9 +34,13 @@ const App = () => {
       <Route path='auth' element={<AuthPage />}></Route>
 
       <Route path="/" element={<Layout />}>
+      
         <Route index element={<LandingPage />} />
+
+        <Route path='/blogupload' element={isUserLoggedIn.isLoggedIn ? <BlogUpload /> : <LandingPage />} />
+
         <Route path='/blog' element={<Blog />} />
-        <Route path='/blogupload' element={<BlogUpload />} />
+
       </Route>
     </Routes>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState,useRef } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import NavLinkComponent from './NavLinkComponent'
 import UserInfo from './UserInfo'
@@ -16,7 +16,22 @@ const NavBar = () => {
 
   const auth = useSelector(state => state.auth) || {};
 
+  const navRef = useRef(null);
 
+  // Close navbar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setShowUser(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (auth.isLoggedIn) {
@@ -32,7 +47,6 @@ const NavBar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
 
 
   return (
@@ -65,7 +79,7 @@ const NavBar = () => {
 
 
                 {showUser && auth.isLoggedIn && (
-                  <UserInfo className={'absolute top-12 right-0 z-10'} />
+                  <UserInfo ref={navRef} className={'absolute top-12 right-0 z-10'} />
                 )}
 
               </div>) : (<Link to={"/auth"} className="bg-white text-black px-4 py-1 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 flex items-center space-x-2 hover:scale-105">
@@ -96,9 +110,9 @@ const NavBar = () => {
                 <UserInfo />
               ) : (
                 <div className="border-t border-gray-700 pt-4 mt-4 space-y-3">
-                    <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Login</Link>
+                  <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Login</Link>
 
-                    <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Sign Up</Link>
+                  <Link to={'/auth'} className='w-full bg-white text-black py-3 rounded-2xl  hover:bg-gray-200  font-bold hover:text-white transition-colors'>Sign Up</Link>
                 </div>
               )}
             </div>

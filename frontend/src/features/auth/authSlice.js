@@ -7,7 +7,7 @@ const initialState = {
   isLoggedIn: !!localStorage.getItem("Token"),
   token: localStorage.getItem("Token") || null,
   error: null
-}
+};
 
 export const signup_user = createAsyncThunk(
   'auth/createuser',
@@ -33,7 +33,6 @@ export const login_user = createAsyncThunk(
     }
   }
 );
-
 
 const authSlice = createSlice({
   name: 'auth',
@@ -95,7 +94,7 @@ const authSlice = createSlice({
       })
   }
 
-})
+});
 
 export const { token_check,logout } = authSlice.actions
 
