@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { generateAiDescription } from '../features/BlogPost/BlogSlice';
+import { generateAiDescription, publishBlog } from '../features/BlogPost/BlogSlice';
 
 const useBlog = () => {
     const dispatch = useDispatch();
@@ -8,7 +8,14 @@ const useBlog = () => {
         dispatch(generateAiDescription({ title, token }));
     };
 
-    return { blogState, genAiDescription };
+    const publishNewBlog = ({ data, token, type }) => {
+        console.log("called")
+        console.log(type)
+        // dispatch(publishBlog({ data, token, type }));
+    };
+
+
+    return { blogState, genAiDescription, publishNewBlog };
 };
 
 export default useBlog;

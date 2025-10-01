@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Eye, Upload, X, Save, ChevronDown, LoaderCircle, LogIn } from 'lucide-react'
+import { Eye, Upload, X, Save, ChevronDown, LoaderCircle, LogIn, CloudFog } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import ReactMarkDown from 'react-markdown'
+import domPurify from 'dompurify'
+
 import RTE from '../components/RTE';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
@@ -10,6 +13,7 @@ import { toast } from "react-toastify"
 import useAuth from '../hooks/useAuth';
 
 const BlogUpload = () => {
+
     const fileInputRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -18,14 +22,11 @@ const BlogUpload = () => {
     const [isFormValid, setIsFormValid] = useState(false)
     const [title, setTitle] = useState('')
     const [category, setCategory] = useState()
-    const { blogState, genAiDescription } = useBlog();
+    const { blogState, genAiDescription, publishNewBlog } = useBlog();
     const { token } = useAuth();
     const { user } = useUser();
-    // const { _id, name, email, isAccountVerified } = user;
 
-
-
-    const { register, watch, reset, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm({});
+    const { register, watch, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm({});
 
     const newtitle = watch('title');
     const newImage = watch('image');
@@ -84,7 +85,6 @@ const BlogUpload = () => {
         }
     };
 
-
     async function fetchData() {
         const response = await api.get('/api/v1/blog/get-category', {
             headers: {
@@ -108,11 +108,6 @@ const BlogUpload = () => {
         genAiDescription({ title: getTitle, token: token });
     }
 
-    function timepass() {
-        console.log(blogState)
-        setValue('description', `<p>Have you ever found yourself marveling at how incredibly smooth and responsive your favorite web applications feel? That instant feedback when you click a button, the seamless loading of new content without a full page refresh? Chances are, you're experiencing the magic of <strong>React Js</strong>. This powerful JavaScript library, developed and maintained by Facebook, has revolutionized how we build modern user interfaces, making web development more efficient, performant, and enjoyable. But what exactly is React, and why has it become such an indispensable tool for developers worldwide?</p>\n\n<h2>The Core Magic: Understanding React's Component-Based Architecture</h2>\n\n<p>At the heart of React Js lies a deceptively simple yet profoundly powerful concept: <strong>components</strong>. Imagine your website or application not as one monolithic block, but as a collection of independent, reusable building blocks. Each button, navigation bar, user profile card, or even an entire page section can be a component. This modular approach brings immense clarity and organization to complex interfaces.</p>\n\n<p>When you break down a UI into these self-contained units, you gain incredible flexibility. Each component manages its own logic and appearance, making it easier to develop, test, and maintain. Need to update a specific part of your page? You only modify that component, without affecting the rest of the application. This reusability not only speeds up development but also ensures consistency across your product.</p>\n\n<p>Another foundational concept is the <strong>Virtual DOM</strong>. Unlike traditional web development where every change directly manipulates the browser's Document Object Model (DOM), React first creates a lightweight copy of the DOM in memory – the Virtual DOM. When state changes, React compares the new Virtual DOM with the previous one, identifies only the necessary changes, and then efficiently updates only those specific parts of the real DOM. This intelligent diffing and patching mechanism dramatically boosts performance, leading to the lightning-fast user experiences we've come to expect.</p>\n\n<h2>Why Developers and Businesses Alike Champion React Js</h2>\n\n<p>The rise of React Js isn't just a trend; it's a testament to its tangible benefits for both developers and the businesses they serve. For developers, React offers a declarative programming style, meaning you describe what your UI should look like for a given state, and React handles the steps to achieve it. This makes code easier to read, debug, and predict, reducing common errors and accelerating development cycles.</p>\n\n<p>Businesses, on the other hand, reap rewards in various forms. React's efficiency translates directly into faster product delivery, lower development costs due to code reusability, and a more maintainable codebase over time. A robust and active community further strengthens React's appeal, providing a wealth of resources, libraries, and tools that extend its capabilities. This vibrant ecosystem means developers rarely face a problem without a pre-existing solution or a supportive peer to guide them.</p>\n\n<ul>\n    <li><strong>Enhanced Performance:</strong> The Virtual DOM ensures highly optimized updates, providing users with a smooth and responsive experience.</li>\n    <li><strong>Reusability & Maintainability:</strong> Component-based architecture promotes modular code, making applications easier to scale and manage.</li>\n    <li><strong>Strong Community Support:</strong> A vast global community contributes to an extensive ecosystem of tools, libraries, and learning resources.</li>\n    <li><strong>Cross-Platform Capabilities:</strong> With React Native, developers can build native mobile applications using their React knowledge, extending reach across platforms.</li>\n</ul>\n\n<h2>React in the Real World: Powering Modern Digital Experiences</h2>\n\n<p>React Js isn't just for startups; it's the backbone of some of the world's most popular and demanding web applications. From social media giants to streaming services and e-commerce platforms, React's ability to handle complex, dynamic user interfaces at scale makes it a top choice. Consider the seamless browsing experience on <strong>Netflix</strong>, the interactive dashboards in <strong>Airbnb</strong>, or the dynamic content feeds on <strong>Instagram</strong> – all are testaments to React's power and versatility.</p>\n\n<p>The beauty of React lies in its flexibility. It's not a full-stack framework; it focuses solely on the view layer, meaning you can integrate it with existing backend technologies or pair it with modern serverless architectures. This makes it an ideal solution for single-page applications (SPAs), complex enterprise systems, real-time dashboards, and even e-commerce storefronts that require rapid updates and interactive elements.</p>\n\n<h2>Embarking on Your React Journey: Getting Started with Confidence</h2>\n\n<p>Feeling inspired to dive into React? The journey is accessible, especially if you have a foundational understanding of JavaScript, HTML, and CSS. The official React documentation is an excellent starting point, known for its clarity and comprehensiveness. Many online courses, tutorials, and bootcamps also offer structured learning paths that guide you from basic concepts to advanced patterns.</p>\n\n<p>To kickstart a new React project, tools like <strong>Create React App</strong> or <strong>Vite</strong> provide a ready-to-use development environment, abstracting away complex build configurations so you can focus immediately on coding. Start by understanding components, then move to props (how data flows into components), state (how components manage their own data), and finally, React Hooks (functions that let you \"hook into\" React state and lifecycle features from functional components). Build small projects, experiment, and don't be afraid to break things – that's how true learning happens!</p>\n\n<h2>The Vibrant React Ecosystem and Its Future</h2>\n\n<p>Beyond the core library, React boasts an incredibly rich and evolving ecosystem. Frameworks like <strong>Next.js</strong> build on React to provide server-side rendering, static site generation, and API routes, making it a powerful choice for full-stack React applications and SEO-friendly websites. State management libraries such as <strong>Redux</strong> or <strong>Zustand</strong> help manage complex application states efficiently. For mobile development, <strong>React Native</strong> allows you to write cross-platform native apps using your React knowledge, sharing up to 90% of your codebase between iOS and Android.</p>\n\n<p>The future of React looks incredibly bright, with continuous innovation driven by both Facebook and the community. Expect ongoing improvements in performance, developer experience, and new features that keep React at the forefront of web development. As the web evolves, React's adaptable nature ensures it will remain a relevant and powerful tool for crafting cutting-edge user interfaces.</p>\n\n<p>React Js has undeniably transformed the landscape of front-end development, offering a powerful, efficient, and enjoyable way to build interactive web applications. Its component-based architecture and Virtual DOM deliver unparalleled performance and maintainability, while its robust ecosystem and active community provide a wealth of resources for developers at every stage. Whether you're a seasoned developer or just starting your coding journey, embracing React can unlock new possibilities and empower you to create truly dynamic and engaging digital experiences. So, why not take the leap and start building something amazing with React today?</p>`)
-    };
-
     useEffect(() => {
         if (blogState?.aiDescription?.data) {
             setValue("description", blogState.aiDescription.data);
@@ -121,6 +116,7 @@ const BlogUpload = () => {
 
 
     const onSubmit = (data) => {
+        // publishNewBlog(data,token,{type:"publish"})
         console.log(data)
         console.log(errors)
     };
@@ -150,9 +146,14 @@ const BlogUpload = () => {
 
 
                     <div>
-                        <h1 className='text-lg text-white my-5'>{newtitle}</h1>
+                        <h1 className='text-white text-3xl my-5'>{newtitle}</h1>
 
-                        <div className='text-white' dangerouslySetInnerHTML={{ __html: newDescription }}></div>
+                        <div
+                            className='text-white prose prose-invert max-w-none [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-gray-200 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-8 [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:my-4 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:my-4 [&_ol]:space-y-2 [&_li]:text-gray-200 [&_strong]:font-bold [&_strong]:text-white [&_em]:italic &_a]:text-blue-400 [&_a]:underline'
+                            dangerouslySetInnerHTML={{
+                                __html: domPurify.sanitize(getValues("description") || '')
+                            }}
+                        />
 
                     </div>
 
@@ -339,6 +340,7 @@ const BlogUpload = () => {
                                     <button
                                         type="button"
                                         disabled={!isFormValid}
+                                        onClick={() => setIsPreviewMode(true)}
                                         className={`flex items-center space-x-2 px-6 py-3 border rounded-lg transition-all ${isFormValid
                                             ? 'border-gray-600 text-white hover:border-white hover:bg-gray-900'
                                             : 'border-gray-800 text-gray-600 cursor-not-allowed'
@@ -349,7 +351,7 @@ const BlogUpload = () => {
                                     </button>
 
                                     <button
-                                        type="button"
+                                        type="submit"
                                         disabled={!isFormValid}
                                         className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all ${isFormValid
                                             ? 'bg-white text-black hover:bg-gray-200'
@@ -362,13 +364,6 @@ const BlogUpload = () => {
                                 </div>
                             </div>
                         </section>
-
-
-                        <button className='bg-white cursor-pointer' type='submit'>Submit Form</button>
-                        <br />
-                        <br />
-                        <br />
-                        <button className='bg-white cursor-pointer' onClick={timepass}>Generate ai description</button>
                     </form>
                 </div>
 
@@ -380,6 +375,8 @@ const BlogUpload = () => {
 
 export default BlogUpload;
 
+
+// Previem Description and to show the data as it is with the html
 // create backend endpoint to save the blog detail to the database
 // Add Generate text to the frontend and also check the code and role with gpt
 // add Loader in button or something

@@ -39,6 +39,7 @@ router.get("/", async (req, res) => {
 
 router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
     try {
+        console.log(req.query)
 
         const userId = req.userId;
         const user = await userModel.findById(userId);
@@ -187,6 +188,7 @@ router.get('/get-category', async (req, res) => {
 router.post('/generateAiDescription', async (req, res) => {
 
     try {
+
         const userId = req.userId;
         const user = await userModel.findById(userId);
 
