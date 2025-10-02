@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import api from '../../api/axios'
-import { ClockFading } from 'lucide-react'
 
 const initialState = {
-    success:false,
+    value: [],
+    success: false,
     loading: false,
     error: null,
     aiDescription: null
@@ -27,16 +27,32 @@ export const generateAiDescription = createAsyncThunk('blog/generateAiDescriptio
     }
 })
 
-export const publishBlog = createAsyncThunk('blog/publishBlog', async ({ data, token, type}, { rejectWithValue }) => {
-console.log(type)
+export const publishBlog = createAsyncThunk('blog/publishBlog', async ({ formData, token }, { rejectWithValue }) => {
     try {
-        const response = await api.post(`api/v1/blog/post-blog/?type=${type}`, { data }, {
+        const response = await api.post(`api/v1/blog/post-blog`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         }
         )
-        console.log("first",response)
+        if (!response.data) {
+            return rejectWithValue(response.data)
+        }
+        return response.data;
+    } catch (error) {
+        return rejectWithValue("someting went wrong")
+    }
+})
+
+export const getAllBlog = createAsyncThunk('blog/getAllBlog',async ({ token }, { rejectWithValue }) => {
+
+    try {
+        const response = await api.get(`api/v1/blog/`,  {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+        )
         if (!response.data) {
             return rejectWithValue(response.data)
         }
@@ -67,6 +83,19 @@ const blogSlice = createSlice({
                 state.loading = false
                 state.error = action.payload,
                     state.aiDescription = null
+            })
+            .addCase(publishBlog.fulfilled, (state, action) => {
+                state.success = action.payload.message
+            })
+            .addCase(publishBlog.rejected, (state, action) => {
+                state.error = action.payload.message
+            })
+            .addCase(getAllBlog.fulfilled, (state, action) => {
+                state.success = action.payload.success
+                state.value = action.payload.blog
+            })
+            .addCase(getAllBlog.rejected, (state, action) => {
+                state.error = action.payload.message
             })
     }
 })

@@ -103,7 +103,7 @@ export default function LandingPage() {
             <p className="text-gray-400 text-xl">Handpicked stories from our latest publications</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3">
             {featuredPosts.map((post, index) => (
               <BlogContainer key={index} post={post} />
             ))}

@@ -1,8 +1,36 @@
-import React from 'react'
-import { ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react'
+import { ArrowRight, ArrowDown, ArrowUp } from 'lucide-react';
+import useBlog from '../hooks/useBlog';
+import useAuth from '../hooks/useAuth';
+import BlogContainer from '../components/BlogContainer';
 
 
 const Blog = () => {
+    const { getBlog } = useBlog();
+    const [blogs, setBlogs] = useState([]);
+    const { token } = useAuth()
+    const [noOfBlogTodisplay, setNoOfBlogTodisplay] = useState(3);
+
+    const getAllBlog = async () => {
+        const response = await getBlog(token)
+        if (response.success) {
+            setBlogs(response.blog)
+        } else {
+            setBlogs([])
+        }
+
+    }
+
+    const isShowingAll = noOfBlogTodisplay >= blogs.length;
+
+    const handleToggle = () => {
+        setNoOfBlogTodisplay(prev => isShowingAll ? Math.max(prev - 3, 3) : prev + 3);
+    };
+
+    useEffect(() => {
+        getAllBlog()
+    }, [])
+
     return (
         <div className='border-t bg-black border-gray-800 '>
             <section className='text-white max-w-7xl mx-auto py-5 px-9'>
@@ -24,6 +52,27 @@ const Blog = () => {
                     {/* for Search and filter */}
                     <div>
                         <h1 className='text-white'>Search and filter</h1>
+                    </div>
+
+                    <div>
+                        <h1 className='text-white text-2xl'>All blog</h1>
+                        <div className=' sm:grid sm:grid-cols-2 lg:grid-cols-3 mt-5 gap-5'>
+                            {blogs.slice(0, noOfBlogTodisplay).map((data) => (
+                                <BlogContainer key={data._id} post={data} ></BlogContainer>
+                            ))}
+                        </div>
+
+                        <div>
+
+                            <p
+                                className='text-white mt-5 cursor-pointer flex justify-center gap-2'
+                                onClick={handleToggle}
+                            >
+                                <span>{isShowingAll ? "Show Less" : "Show More"}</span>
+                                {isShowingAll ? <ArrowUp className='animate-bounce' /> : <ArrowDown className='animate-bounce' />}
+                            </p>
+                        </div>
+
                     </div>
                 </div>
             </section>

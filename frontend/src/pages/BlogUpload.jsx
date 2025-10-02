@@ -1,7 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Eye, Upload, X, Save, ChevronDown, LoaderCircle, LogIn, CloudFog } from 'lucide-react'
-import { useSelector } from 'react-redux'
-import ReactMarkDown from 'react-markdown'
 import domPurify from 'dompurify'
 
 import RTE from '../components/RTE';
@@ -22,11 +20,11 @@ const BlogUpload = () => {
     const [isFormValid, setIsFormValid] = useState(false)
     const [title, setTitle] = useState('')
     const [category, setCategory] = useState()
-    const { blogState, genAiDescription, publishNewBlog } = useBlog();
+    const { blogState, genAiDescription, publishNewBlog, draftBlog } = useBlog();
     const { token } = useAuth();
     const { user } = useUser();
 
-    const { register, watch, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm({});
+    const { register, reset, watch, handleSubmit, formState: { errors }, setValue, getValues, control } = useForm({});
 
     const newtitle = watch('title');
     const newImage = watch('image');
@@ -72,6 +70,7 @@ const BlogUpload = () => {
 
         if (files.length > 0) {
             const file = files[0];
+            console.log(file)
             setValue('image', file)
             handleFileUpload(file)
         }
@@ -115,10 +114,38 @@ const BlogUpload = () => {
     }, [blogState?.aiDescription, setValue]);
 
 
-    const onSubmit = (data) => {
-        // publishNewBlog(data,token,{type:"publish"})
-        console.log(data)
-        console.log(errors)
+    const onBlogPost = async (data) => {
+        const formData = new FormData();
+        formData.append("image", image);
+        formData.append("title", data.title)
+        formData.append("category", data.category)
+        formData.append("description", data.description)
+        formData.append("status", "published");
+        const result = await publishNewBlog(formData, token);
+        reset();
+        removeImage();
+        if (result.success) {
+            toast.success(result.message)
+        }else{
+            toast.error(result.message)
+        }
+    };
+
+    const onBlogDraft = async (data) => {
+        const formData = new FormData();
+        formData.append("image", image);
+        formData.append("title", data.title)
+        formData.append("category", data.category)
+        formData.append("description", data.description)
+        formData.append("status", "draft");
+        reset();
+        removeImage();
+        const result = await draftBlog(formData, token);
+         if (result.success) {
+            toast.success(result.message)
+        }else{
+            toast.error(result.message)
+        }
     };
 
 
@@ -165,7 +192,7 @@ const BlogUpload = () => {
         return (
             <div className='bg-black border-t border-gray-800'>
                 <div className='max-w-4xl mx-auto px-8 py-10'>
-                    <form action="" onSubmit={handleSubmit(onSubmit)}>
+                    <form>
                         {/* for Text */}
                         <section className='flex justify-between'>
                             <div>
@@ -314,7 +341,10 @@ const BlogUpload = () => {
 
 
 
-                                {!blogState?.loading || false ? (<button type='button' onClick={handleAiGenerate} className='flex items-center space-x-2 px-6 py-2 rounded-lg font-semibold transition-all bg-white text-black hover:bg-gray-200 cursor-pointer text-lg'> Use Ai - credit left {user?.aiCredit ? user.aiCredit : 0} </button>)
+                                {!blogState?.loading || false ? (<button type='button' onClick={(e) => {
+                                    e.preventDefault()
+                                    handleAiGenerate()
+                                }} className='flex items-center space-x-2 px-6 py-2 rounded-lg font-semibold transition-all bg-white text-black hover:bg-gray-200 cursor-pointer text-lg'> Use Ai - credit left {user?.aiCredit ? user.aiCredit : 0} </button>)
                                     : (
                                         <button className='flex items-center space-x-2 px-6 py-2 rounded-lg font-semibold transition-all bg-zinc-300 text-black text-sm'>
                                             <span className='text-lg'> Thinking... </span> <LoaderCircle className='transition-all animate-spin' />
@@ -331,6 +361,10 @@ const BlogUpload = () => {
                             <div className="flex items-center justify-between pt-6 border-t border-gray-800">
                                 <button
                                     type="button"
+                                    onClick={(e)=>{
+                                        e.preventDefault();
+                                        handleSubmit(onBlogDraft)();
+                                    }}
                                     className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:text-white hover:border-gray-500 transition-all"
                                 >
                                     Save Draft
@@ -352,6 +386,10 @@ const BlogUpload = () => {
 
                                     <button
                                         type="submit"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleSubmit(onBlogPost)();
+                                        }}
                                         disabled={!isFormValid}
                                         className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all ${isFormValid
                                             ? 'bg-white text-black hover:bg-gray-200'

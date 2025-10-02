@@ -10,6 +10,7 @@ import generateAiDescription from "../../config/GeminiAI.js";
 const router = Router();
 
 router.get("/", async (req, res) => {
+    console.log("Hey there")
     try {
         const allBlog = await postModel.find({})
 
@@ -37,10 +38,9 @@ router.get("/", async (req, res) => {
     }
 })
 
-router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
+router.post("/post-blog", upload.single('image'), async (req, res) => {
+    console.log("Received")
     try {
-        console.log(req.query)
-
         const userId = req.userId;
         const user = await userModel.findById(userId);
         if (!user) {
@@ -52,8 +52,8 @@ router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
                 })
         };
 
-        const { title, description, category } = req.body;
-        if (!title || !description || !category) {
+        const { title, description, category, status } = req.body;
+        if (!title || !description || !category || !status) {
             return res
                 .status(400)
                 .json({
@@ -99,10 +99,10 @@ router.post("/post-blog", upload.single('fileupload'), async (req, res) => {
             image: img_url,
             category: category,
             userId: user._id,
-            status: "published",
+            status: status,
         });
 
-        // await createPost.save();
+        await createPost.save();
 
         return res.status(200).json({
             success: true,

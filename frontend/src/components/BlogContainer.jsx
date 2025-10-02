@@ -1,11 +1,13 @@
 import React from 'react'
-import {ArrowRight,Heart,Eye} from 'lucide-react'
+import { ArrowRight, Heart, Eye } from 'lucide-react'
 
-const BlogContainer = ({index,post}) => {
+const BlogContainer = ({ index, post }) => {
     return (
-        <article key={index} className="group bg-gray-900 rounded-2xl p-8 hover:bg-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-800 hover:border-gray-700">
+        <article key={index} className="group bg-gray-900 rounded-2xl p-8 m-5 sm:m-1 hover:bg-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-800 hover:border-gray-700">
             <div className="mb-6">
-                <div className="w-full h-40 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-6 group-hover:from-gray-600 group-hover:to-gray-700 transition-all duration-300"></div>
+                <div className="w-full h-40  rounded-lg mb-6  transition-all duration-300">
+                    <img className='w-full h-full object-center' src={post.image} alt="" />
+                </div>
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                     <span>{post.readTime}</span>
                     <span>{post.publishedDate}</span>

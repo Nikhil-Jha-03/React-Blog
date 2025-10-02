@@ -1,4 +1,4 @@
-import { useEffect, useState,useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import NavLinkComponent from './NavLinkComponent'
 import UserInfo from './UserInfo'
@@ -17,11 +17,12 @@ const NavBar = () => {
   const auth = useSelector(state => state.auth) || {};
 
   const navRef = useRef(null);
+  const profileRef = useRef(null);
 
   // Close navbar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (navRef.current && !navRef.current.contains(event.target)) {
+      if (navRef.current && !navRef.current.contains(event.target) && profileRef.current && !profileRef.current.contains(event.target)) {
         setShowUser(false);
       }
     };
@@ -71,6 +72,7 @@ const NavBar = () => {
 
               {auth.isLoggedIn ? (<div className="relative">
                 <button
+                ref={profileRef}
                   onClick={() => setShowUser((prev) => !prev)}
                   className="p-2 rounded-full hover:bg-gray-800 transition"
                 >
