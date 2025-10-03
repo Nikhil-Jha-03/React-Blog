@@ -44,10 +44,26 @@ export const publishBlog = createAsyncThunk('blog/publishBlog', async ({ formDat
     }
 })
 
-export const getAllBlog = createAsyncThunk('blog/getAllBlog',async ({ token }, { rejectWithValue }) => {
-
+export const getAllBlog = createAsyncThunk('blog/getAllBlog', async ({ token }, { rejectWithValue }) => {
     try {
-        const response = await api.get(`api/v1/blog/`,  {
+        const response = await api.get(`api/v1/blog/`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+        )
+        if (!response.data) {
+            return rejectWithValue(response.data)
+        }
+        return response.data;
+    } catch (error) {
+        return rejectWithValue("someting went wrong")
+    }
+})
+
+export const getCategory = createAsyncThunk('blog/getBlog', async ({ token }, { rejectWithValue }) => {
+    try {
+        const response = await api.get(`api/v1/blog/get-category`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

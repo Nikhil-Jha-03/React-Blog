@@ -124,6 +124,7 @@ const BlogUpload = () => {
         const result = await publishNewBlog(formData, token);
         reset();
         removeImage();
+        console.log(result)
         if (result.success) {
             toast.success(result.message)
         }else{
@@ -138,9 +139,11 @@ const BlogUpload = () => {
         formData.append("category", data.category)
         formData.append("description", data.description)
         formData.append("status", "draft");
+        const result = await draftBlog(formData, token);
         reset();
         removeImage();
-        const result = await draftBlog(formData, token);
+        console.log("result")
+        console.log(result)
          if (result.success) {
             toast.success(result.message)
         }else{

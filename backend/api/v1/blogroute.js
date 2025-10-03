@@ -10,9 +10,9 @@ import generateAiDescription from "../../config/GeminiAI.js";
 const router = Router();
 
 router.get("/", async (req, res) => {
-    console.log("Hey there")
+   // Only Get publihed Blog
     try {
-        const allBlog = await postModel.find({})
+        const allBlog = await postModel.find({status:"published"})
 
         if (allBlog.length === 0) {
             return res
