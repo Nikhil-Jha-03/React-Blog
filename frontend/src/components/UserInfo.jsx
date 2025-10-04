@@ -28,7 +28,7 @@ const UserInfo = ({ ref, className }) => {
 
             <div className="space-y-2">
                 <Link to={'/'} className='block text-gray-300 hover:text-white transition-colors"'>Profile</Link>
-                <Link to={'/'} className='block text-gray-300 hover:text-white transition-colors"'>My Posts</Link>
+                <Link to={'/myblogs'} className='block text-gray-300 hover:text-white transition-colors"'>My Posts</Link>
                 <Link to={'/'} className='block text-gray-300 hover:text-white transition-colors"'>Settings</Link>
                 <Link to={'/blogupload'} className='block text-gray-300 hover:text-white transition-colors"'>Upload your Blog</Link>
                 {!user?.isAccountVerified && <Link to={'/'} className='block text-gray-300 hover:text-white transition-colors"'>Verify Account</Link>}

@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { token_check } from './features/auth/authSlice';
 import LandingPage from './pages/LandingPage';
 import Layout from './pages/Layout';
+import MyPost from './pages/MyPost';
 
 
 const App = () => {
@@ -38,8 +39,8 @@ const App = () => {
         <Route index element={<LandingPage />} />
 
         <Route path='/blogupload' element={isUserLoggedIn.isLoggedIn ? <BlogUpload /> : <LandingPage />} />
-
-        <Route path='/blog' element={<Blog />} />
+        <Route path='/blog' element={isUserLoggedIn.isLoggedIn ? <Blog /> : <LandingPage />} />
+        <Route path='/myblogs' element={isUserLoggedIn.isLoggedIn ? <MyPost /> : <LandingPage />} />
 
       </Route>
     </Routes>

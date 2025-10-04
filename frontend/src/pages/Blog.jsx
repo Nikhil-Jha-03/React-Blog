@@ -37,6 +37,7 @@ const Blog = () => {
         setIsFilterOn(true)
         const filter = blogs.filter(data => data.category === id)
         setfilteredBlog(filter);
+
     }
 
     const searchRef = useRef(null)
@@ -152,7 +153,7 @@ const Blog = () => {
                             </>
                         )}
 
-                        {!isFilterOn && blogs && blogs?.length > 0 ? (
+                        {!isFilterOn && blogs?.length > 0 ? (
                             <>
                                 <div className=' sm:grid sm:grid-cols-2 lg:grid-cols-3 mt-5 gap-5'>
                                     {blogs.slice(0, noOfBlogTodisplay).map((data) => (
@@ -189,4 +190,6 @@ const Blog = () => {
     )
 }
 
-export default Blog
+export default Blog;
+
+// show more and less for filter blog

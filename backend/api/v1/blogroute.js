@@ -5,14 +5,15 @@ import userModel from "../../Schema/UserSchema.js";
 import imageKitKey from "../../utils/imagekit.js";
 import CategoryModel from '../../Schema/BlogCategorySchema.js'
 import generateAiDescription from "../../config/GeminiAI.js";
+import mongoose from "mongoose";
 
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-   // Only Get publihed Blog
+    // Only Get publihed Blog
     try {
-        const allBlog = await postModel.find({status:"published"})
+        const allBlog = await postModel.find({ status: "published" })
 
         if (allBlog.length === 0) {
             return res
@@ -29,6 +30,80 @@ router.get("/", async (req, res) => {
             message: "All Blogs retrived",
             blog: allBlog
         });
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+})
+
+router.get("/getuserblog", async (req, res) => {
+    try {
+        const userValid = await userModel.findById(req.userId);
+
+        if (!userValid) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const userBlog = await postModel.find({ userId: userValid._id }).populate('category', 'category');
+
+        if (!userBlog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not Found",
+                data: []
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Blog Found",
+            data: userBlog
+        })
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+})
+
+router.patch("/drafttopublish", async (req, res) => {
+    try {
+        console.log("coming")
+
+        const userValid = await userModel.findById(req.userId);
+
+        if (!userValid) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const blogId = req.body.id;
+
+        const userBlog = await postModel.findByIdAndUpdate(blogId, { status: "published" }, { new: true })
+
+        if (!userBlog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not Found",
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Blog Published",
+        })
+
     } catch (error) {
         console.error("Unexpected error:", error);
         return res.status(500).json({
@@ -184,6 +259,37 @@ router.get('/get-category', async (req, res) => {
     }
 });
 
+router.delete('/delete/:id', async (req, res) => {
+    console.log("hey")
+    try {
+        const user = req.userId;
+        if (!user) {
+            return res.status(401)
+                .json({
+                    sucess: false,
+                    message: "User not found"
+                })
+        }
+
+        const postId = req.params.id;
+
+        const deleted = await postModel.findByIdAndDelete(postId);
+
+        if (!deleted) return res.status(404).json({ success: false, message: "Blog not found" });
+
+        return res.status(200).json({
+            success: true,
+            message: "Successfully Deleted"
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+})
 
 router.post('/generateAiDescription', async (req, res) => {
 
@@ -255,7 +361,4 @@ router.post('/generateAiDescription', async (req, res) => {
     }
 })
 
-
-
-
-export default router
+export default router;
