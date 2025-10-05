@@ -1,13 +1,14 @@
-import { useEffect } from 'react'
+import { lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import AuthPage from './pages/AuthPage';
-import Blog from './pages/Blog';
-import BlogUpload from './pages/BlogUpload';
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogUpload = lazy(() => import("./pages/BlogUpload"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Layout = lazy(() => import("./pages/Layout"));
+const MyPost = lazy(() => import("./pages/MyPost"));
+const EditBlog = lazy(() => import("./pages/EditBlog"));
 import { useSelector, useDispatch } from 'react-redux';
 import { token_check } from './features/auth/authSlice';
-import LandingPage from './pages/LandingPage';
-import Layout from './pages/Layout';
-import MyPost from './pages/MyPost';
 
 
 const App = () => {
@@ -35,12 +36,13 @@ const App = () => {
       <Route path='auth' element={<AuthPage />}></Route>
 
       <Route path="/" element={<Layout />}>
-      
+
         <Route index element={<LandingPage />} />
 
         <Route path='/blogupload' element={isUserLoggedIn.isLoggedIn ? <BlogUpload /> : <LandingPage />} />
         <Route path='/blog' element={isUserLoggedIn.isLoggedIn ? <Blog /> : <LandingPage />} />
         <Route path='/myblogs' element={isUserLoggedIn.isLoggedIn ? <MyPost /> : <LandingPage />} />
+        <Route path='/myblogs/edit/:id' element={isUserLoggedIn.isLoggedIn ? <EditBlog/> : <LandingPage />} />
 
       </Route>
     </Routes>

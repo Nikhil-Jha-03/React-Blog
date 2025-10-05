@@ -44,9 +44,9 @@ export const publishBlog = createAsyncThunk('blog/publishBlog', async ({ formDat
     }
 })
 
-export const getAllBlog = createAsyncThunk('blog/getAllBlog', async ({ token }, { rejectWithValue }) => {
+export const getAllBlog = createAsyncThunk('blog/getAllBlog', async ({ token}, { rejectWithValue }) => {
     try {
-        const response = await api.get(`api/v1/blog/`, {
+        const response = await api.get(`api/v1/blog`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -61,7 +61,7 @@ export const getAllBlog = createAsyncThunk('blog/getAllBlog', async ({ token }, 
     }
 })
 
-export const getCategory = createAsyncThunk('blog/getBlog', async ({ token }, { rejectWithValue }) => {
+export const getCategory = createAsyncThunk('blog/getCategory', async ({ token }, { rejectWithValue }) => {
     try {
         const response = await api.get(`api/v1/blog/get-category`, {
             headers: {

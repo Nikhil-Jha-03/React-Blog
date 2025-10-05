@@ -5,15 +5,13 @@ import userModel from "../../Schema/UserSchema.js";
 import imageKitKey from "../../utils/imagekit.js";
 import CategoryModel from '../../Schema/BlogCategorySchema.js'
 import generateAiDescription from "../../config/GeminiAI.js";
-import mongoose from "mongoose";
-
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-    // Only Get publihed Blog
     try {
-        const allBlog = await postModel.find({ status: "published" })
+
+        const allBlog = await postModel.find({ status: "published" });
 
         if (allBlog.length === 0) {
             return res
@@ -28,7 +26,7 @@ router.get("/", async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "All Blogs retrived",
-            blog: allBlog
+            blog: allBlog,
         });
     } catch (error) {
         console.error("Unexpected error:", error);
@@ -38,6 +36,36 @@ router.get("/", async (req, res) => {
         });
     }
 })
+
+
+// router.get("/", async (req, res) => {
+//     // Only Get publihed Blog
+//     try {
+//         const allBlog = await postModel.find({ status: "published" })
+
+//         if (allBlog.length === 0) {
+//             return res
+//                 .status(404)
+//                 .json({
+//                     success: false,
+//                     message: "No blog found"
+//                 });
+//         }
+
+
+//         return res.status(200).json({
+//             success: true,
+//             message: "All Blogs retrived",
+//             blog: allBlog
+//         });
+//     } catch (error) {
+//         console.error("Unexpected error:", error);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Internal server error"
+//         });
+//     }
+// })
 
 router.get("/getuserblog", async (req, res) => {
     try {
@@ -74,6 +102,31 @@ router.get("/getuserblog", async (req, res) => {
         });
     }
 })
+
+router.get("/getEditBlog/:id", async (req, res) => {
+    try {
+        const blog = await postModel.findById(req.params.id)
+        if (!blog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Blog fetched successfully",
+            data: blog,
+        });
+    } catch (error) {
+        console.error("Error fetching blog:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch blog",
+            error: error.message,
+        });
+    }
+});
 
 router.patch("/drafttopublish", async (req, res) => {
     try {
@@ -360,5 +413,90 @@ router.post('/generateAiDescription', async (req, res) => {
         });
     }
 })
+
+router.put("/edit/:id", upload.single("image"), async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // 1. Check if post exists
+        const existingBlog = await postModel.findById(id);
+        if (!existingBlog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not found",
+            });
+        }
+
+        // 2. Check if current user owns the blog
+        if (!existingBlog.userId.equals(req.userId)) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not allowed to edit this blog",
+            });
+        }
+
+        // 3. Handle image
+        let img_url = null;
+        const file = req.file;
+
+        if (file) {
+            try {
+                const response = await imageKitKey.upload({
+                    file: file.buffer,
+                    fileName: file.originalname,
+                });
+
+                img_url = imageKitKey.url({
+                    path: response.filePath,
+                    transformation: [
+                        {
+                            quality: "auto",
+                            width: "512",
+                            format: "webp",
+                            height: "512",
+                            crop: "maintain_ratio",
+                            trim: "color",
+                        },
+                    ],
+                });
+            } catch (err) {
+                console.error("Image upload failed:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Image upload failed",
+                    error: err.message,
+                });
+            }
+        }
+
+        // 4. Update blog with partial fields
+        const data = req.body;
+
+        await postModel.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    ...data, // title, content, category, etc
+                    image: img_url || existingBlog.image, // keep old image if no new upload
+                },
+            },
+            { new: true, runValidators: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Blog updated successfully",
+        });
+    } catch (error) {
+        console.error("Error updating blog:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while updating blog",
+            error: error.message,
+        });
+    }
+});
+
+
 
 export default router;
