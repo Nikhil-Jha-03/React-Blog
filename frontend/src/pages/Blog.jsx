@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from "react-router-dom"
 import { Search } from 'lucide-react';
 import useBlog from '../hooks/useBlog';
 import useAuth from '../hooks/useAuth';
 import BlogContainer from '../components/BlogContainer';
 
 const Blog = () => {
+    const navigate = useNavigate();
+
     const { getBlog, getAllCategory } = useBlog();
     const { token } = useAuth();
-    
+
     const [blogs, setBlogs] = useState([]);
     const [category, setCategory] = useState([]);
     const [filteredBlog, setFilteredBlog] = useState([]);
@@ -16,7 +19,7 @@ const Blog = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(6);
     const [totalPage, setTotalPage] = useState(0);
-    
+
     const searchRef = useRef(null);
     const searchTimeout = useRef(null);
 
@@ -54,7 +57,7 @@ const Blog = () => {
 
     const handleSearch = (data) => {
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        
+
         searchTimeout.current = setTimeout(() => {
             if (data.trim()) {
                 const filterData = blogs.filter(blog =>
@@ -80,10 +83,10 @@ const Blog = () => {
     };
 
     const onPageChange = (page) => {
-        const maxPages = isFilterOn 
-            ? Math.ceil(filteredBlog.length / pageSize) 
+        const maxPages = isFilterOn
+            ? Math.ceil(filteredBlog.length / pageSize)
             : totalPage;
-            
+
         if (page <= 0 || page > maxPages) {
             return;
         }
@@ -108,15 +111,16 @@ const Blog = () => {
     // Determine which data to display
     const displayData = isFilterOn ? filteredBlog : blogs;
     const paginatedData = displayData.slice(firstPageIndex, lastPostIndex);
-    const currentTotalPages = isFilterOn 
+    const currentTotalPages = isFilterOn
         ? Math.ceil(filteredBlog.length / pageSize) || 1
         : totalPage;
+
 
     return (
         <div className='border-t bg-black border-gray-800'>
             <section className='border-t border-gray-800 min-h-[60vh]'>
                 <div className='max-w-7xl mx-auto py-5 px-9'>
-                    
+
                     {/* Category Filters */}
                     <div className='flex justify-center mb-6'>
                         {category && category.length > 0 ? (
@@ -176,7 +180,7 @@ const Blog = () => {
                         <>
                             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'>
                                 {paginatedData.map((data) => (
-                                    <BlogContainer key={data._id} post={data} />
+                                    <BlogContainer key={data._id} post={data}/>
                                 ))}
                             </div>
 
@@ -196,17 +200,15 @@ const Blog = () => {
                                             <button
                                                 key={id}
                                                 onClick={() => onPageChange(id + 1)}
-                                                className={`px-3 py-2 rounded transition-all ${
-                                                    currentPage === id + 1
+                                                className={`px-3 py-2 rounded transition-all ${currentPage === id + 1
                                                         ? 'bg-white text-black font-semibold'
                                                         : 'bg-gray-800 text-white hover:bg-gray-700'
-                                                }`}
+                                                    }`}
                                             >
                                                 {id + 1}
                                             </button>
                                         ))}
                                     </div>
-
                                     <button
                                         onClick={() => onPageChange(currentPage + 1)}
                                         disabled={currentPage === currentTotalPages}

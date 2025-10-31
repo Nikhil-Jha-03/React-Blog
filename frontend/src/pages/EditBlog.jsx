@@ -412,7 +412,6 @@ const BlogUpload = () => {
                                     ) : (<>
                                         <Save className="w-4 h-4" />
                                         <span> Save</span></>)}
-
                                 </button>
                             </div>
                         </section>

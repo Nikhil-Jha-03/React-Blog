@@ -9,6 +9,7 @@ const MyPost = lazy(() => import("./pages/MyPost"));
 const EditBlog = lazy(() => import("./pages/EditBlog"));
 import { useSelector, useDispatch } from 'react-redux';
 import { token_check } from './features/auth/authSlice';
+import ReadBlog from './pages/ReadBlog';
 
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
         <Route path='/blog' element={isUserLoggedIn.isLoggedIn ? <Blog /> : <LandingPage />} />
         <Route path='/myblogs' element={isUserLoggedIn.isLoggedIn ? <MyPost /> : <LandingPage />} />
         <Route path='/myblogs/edit/:id' element={isUserLoggedIn.isLoggedIn ? <EditBlog/> : <LandingPage />} />
+        <Route path='/readblog/:id' element={isUserLoggedIn.isLoggedIn ? <ReadBlog/> : <LandingPage />} />
 
       </Route>
     </Routes>

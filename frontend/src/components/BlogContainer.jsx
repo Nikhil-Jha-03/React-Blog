@@ -1,9 +1,13 @@
 import React from 'react'
 import { ArrowRight, Heart, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const BlogContainer = ({ index, post }) => {
+    const navigate = useNavigate()
     return (
-        <article key={index} className="group  bg-gray-900 rounded-2xl p-8 m-5 sm:m-1 hover:bg-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-800 hover:border-gray-700">
+        <article onClick={()=>{
+            navigate(`/readblog/${post._id}`)
+        }} key={index} className="group  bg-gray-900 rounded-2xl p-8 m-5 sm:m-1 hover:bg-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-800 hover:border-gray-700">
             <div className="mb-6">
                 <div className="w-full h-40  rounded-lg mb-6  transition-all duration-300">
                     <img className='w-full h-full object-center' src={post.image} alt="" />

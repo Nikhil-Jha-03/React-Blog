@@ -12,7 +12,6 @@ router.get("/", async (req, res) => {
     try {
 
         const allBlog = await postModel.find({ status: "published" });
-
         if (allBlog.length === 0) {
             return res
                 .status(404)
@@ -21,7 +20,6 @@ router.get("/", async (req, res) => {
                     message: "No blog found"
                 });
         }
-
 
         return res.status(200).json({
             success: true,
@@ -36,36 +34,6 @@ router.get("/", async (req, res) => {
         });
     }
 })
-
-
-// router.get("/", async (req, res) => {
-//     // Only Get publihed Blog
-//     try {
-//         const allBlog = await postModel.find({ status: "published" })
-
-//         if (allBlog.length === 0) {
-//             return res
-//                 .status(404)
-//                 .json({
-//                     success: false,
-//                     message: "No blog found"
-//                 });
-//         }
-
-
-//         return res.status(200).json({
-//             success: true,
-//             message: "All Blogs retrived",
-//             blog: allBlog
-//         });
-//     } catch (error) {
-//         console.error("Unexpected error:", error);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Internal server error"
-//         });
-//     }
-// })
 
 router.get("/getuserblog", async (req, res) => {
     try {
@@ -142,7 +110,7 @@ router.patch("/drafttopublish", async (req, res) => {
         }
 
         const blogId = req.body.id;
-
+        console.log(blogId)
         const userBlog = await postModel.findByIdAndUpdate(blogId, { status: "published" }, { new: true })
 
         if (!userBlog) {
@@ -167,7 +135,6 @@ router.patch("/drafttopublish", async (req, res) => {
 })
 
 router.post("/post-blog", upload.single('image'), async (req, res) => {
-    console.log("Received")
     try {
         const userId = req.userId;
         const user = await userModel.findById(userId);
@@ -246,6 +213,40 @@ router.post("/post-blog", upload.single('image'), async (req, res) => {
     }
 })
 
+// get blog by id
+router.get("/getblogbyid/:id", async (req, res) => {
+    try {
+        console.log("getblogbyid")
+        const blogId = req.params.id;
+        if (!blogId) {
+            return res.status(404).json({
+                success: false,
+                message: "Error, Blog not found",
+            });
+        }
+        console.log(blogId)
+        const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name");
+        if (!blog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not found",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Blog fetched successfully",
+            data: blog,
+        });
+    } catch (error) {
+        console.error("Error fetching blog:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch blog",
+            error: error.message,
+        });
+    }
+});
+
 router.post('/post-category', async (req, res) => {
     try {
         const { category } = req.body;
@@ -313,7 +314,6 @@ router.get('/get-category', async (req, res) => {
 });
 
 router.delete('/delete/:id', async (req, res) => {
-    console.log("hey")
     try {
         const user = req.userId;
         if (!user) {

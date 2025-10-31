@@ -2,7 +2,7 @@ import React, { useEffect, useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import useAuth from '../hooks/useAuth'
-import { Loader } from 'lucide-react'
+import { CircleGauge, Loader } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 const MyPost = () => {
@@ -36,12 +36,12 @@ const MyPost = () => {
     }
 
     const handlePublish = async (id) => {
+        console.log(token)
         try {
-            const response = await api.patch("/api/v1/blog/drafttopublish", {
+            const response = await api.patch("/api/v1/blog/drafttopublish",{id} ,{
                 headers: {
                     Authorization: `Bearer ${token}`
-                },
-                data: { id }
+                }
             })
             fetchUserBlog();
             toast.success(response?.data?.message || "Done")
