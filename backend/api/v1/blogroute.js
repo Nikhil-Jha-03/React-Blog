@@ -216,7 +216,17 @@ router.post("/post-blog", upload.single('image'), async (req, res) => {
 // get blog by id
 router.get("/getblogbyid/:id", async (req, res) => {
     try {
-        console.log("getblogbyid")
+        const userId = req.userId;
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res
+                .status(404)
+                .json({
+                    success: false,
+                    message: "User Not found"
+                })
+        };
+
         const blogId = req.params.id;
         if (!blogId) {
             return res.status(404).json({
@@ -224,8 +234,9 @@ router.get("/getblogbyid/:id", async (req, res) => {
                 message: "Error, Blog not found",
             });
         }
-        console.log(blogId)
         const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name");
+        const likedByCurrentUser = blog.like.includes(userId);
+
         if (!blog) {
             return res.status(404).json({
                 success: false,
@@ -236,6 +247,7 @@ router.get("/getblogbyid/:id", async (req, res) => {
             success: true,
             message: "Blog fetched successfully",
             data: blog,
+            likedByCurrentUser: likedByCurrentUser
         });
     } catch (error) {
         console.error("Error fetching blog:", error);
@@ -494,6 +506,94 @@ router.put("/edit/:id", upload.single("image"), async (req, res) => {
             message: "Server error while updating blog",
             error: error.message,
         });
+    }
+});
+
+// Like Dislike blog post
+router.patch("/likepost", async (req, res) => {
+    try {
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const blogId = req.body.blogId;
+        const post = await postModel.findById(blogId);
+
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+
+        const userId = user._id;
+
+        // Toggle like
+        const updateOperation = post.like.includes(userId)
+            ? { $pull: { like: userId } }
+            : { $addToSet: { like: userId } };
+
+            
+            const updatedPost = await postModel.findByIdAndUpdate(blogId, updateOperation, { new: true });
+            const likedByCurrentUser = updatedPost.like.includes(userId);
+
+        if (!updatedPost) {
+            return res.status(500).json({ success: false, message: "Failed to update post" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: post.like.includes(userId) ? "Post Disliked" : "Post Liked",
+            likedByCurrentUser:likedByCurrentUser
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+
+// view post - have to change the logic later wrt to view field set to objectid
+router.patch("/postviewed", async (req, res) => {
+    try {
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const blogId = req.body.id;
+        const post = await postModel.findById(blogId);
+
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+
+        const userId = user._id;
+
+        // Toggle like
+
+        if (post.views.includes(userId)) {
+            return
+        }
+
+        const updateOperation = post.like.includes(userId)
+            ? { $pull: { like: userId } }
+            : { $addToSet: { views: userId } };
+
+            
+        const updatedPost = await postModel.findByIdAndUpdate(blogId,{ $addToSet: { views: userId } }, { new: true });
+
+        if (!updatedPost) {
+            return res.status(500).json({ success: false, message: "Failed to view the post" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: post.like.includes(userId) ? "Post already view" : "Post view",
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
 

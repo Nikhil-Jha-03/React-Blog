@@ -7,9 +7,9 @@ import { Calendar, Eye, Heart, User, Tag } from 'lucide-react';
 
 const ReadBlog = () => {
   const blogId = useParams().id;
-  console.log(blogId);
   const [blog, setBlog] = useState(null);
   const { token } = useAuth();
+  const [blogLiked,setBlogLiked] = useState(false)
 
 
   const fetchBlog = async () => {
@@ -24,6 +24,7 @@ const ReadBlog = () => {
       });
       if (response?.data) {
         setBlog(response.data.data)
+        setBlogLiked(response?.data.likedByCurrentUser || false)
         console.log(response.data.data)
       }
 
@@ -34,24 +35,44 @@ const ReadBlog = () => {
 
   }
 
+  const likePost = async () => {
+    const response = await api.patch("/api/v1/blog/likepost", { blogId }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    console.log(response.data)
+    setBlogLiked(response?.data.likedByCurrentUser || false)
+
+
+  }
+
+  
 
   useEffect(() => {
-    fetchBlog();
-  }, []);
+    // can enable later after changing the backend logic
+    // api.patch("/api/v1/blog/postviewed", { blogId }, {
+    //   headers: {
+    //     Authorization: `Bearer ${token}`
+    //   }
+    // })
 
-const [liked, setLiked] = useState(false);
+    fetchBlog();
+  }, [blogLiked]);
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
   return (
-   <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
       <div className="border-b border-gray-800 bg-black/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-6 py-4">
@@ -95,48 +116,27 @@ const [liked, setLiked] = useState(false);
               </div>
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
-                <span>{blog.views} views</span>
+                <span>{blog?.views?.length || 10} views</span>
               </div>
               <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4" />
+                <Heart className={`w-4 h-4 ${blogLiked ? "text-red-500 fill-red-500"  : "text-text-gray-400"} `} />
                 <span>{blog.like.length} likes</span>
               </div>
             </div>
 
             {/* Featured Image */}
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-800 shadow-2xl group">
-              <img 
-                src={blog.image} 
+              <img
+                src={blog.image}
                 alt={blog.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
 
-            {/* Interaction Bar */}
-            <div className="flex items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
-              <button 
-                onClick={() => setLiked(!liked)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                  liked 
-                    ? 'bg-red-500 text-white hover:bg-red-600' 
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-                {liked ? 'Liked' : 'Like'}
-              </button>
-
-              <div className="flex items-center gap-4 text-gray-400">
-                <span className="text-sm">{blog.comments.length} Comments</span>
-                <span className="text-sm">•</span>
-                <span className="text-sm">Share</span>
-              </div>
-            </div>
-
             {/* Article Content */}
             <div className="prose prose-invert prose-lg max-w-none">
-              <div 
+              <div
                 className="text-gray-300 leading-relaxed space-y-6 p-8 bg-gray-900/30 rounded-xl border border-gray-800 prose prose-invert max-w-none [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-gray-200 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-8 [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-white [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:my-4 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:my-4 [&_ol]:space-y-2 [&_li]:text-gray-200 [&_strong]:font-bold [&_strong]:text-white [&_em]:italic &_a]:text-blue-400 [&_a]:underline'"
                 dangerouslySetInnerHTML={{ __html: blog.description }}
                 style={{
@@ -166,6 +166,26 @@ const [liked, setLiked] = useState(false);
                 )}
               </div>
             </div>
+
+
+            {/* Interaction Bar */}
+            <div className="flex items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+              <button
+                onClick={likePost}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${blogLiked
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+              >
+                <Heart className={`w-5 h-5 ${blogLiked ? 'fill-current' : ''}`} />
+                {blogLiked ? 'Liked' : 'Like'}
+              </button>
+
+              <div className="flex items-center gap-4 text-gray-400">
+                <span className="text-sm">{blog.comments.length} Comments</span>
+              </div>
+            </div>
+
           </article>
         ) : (
           <div className="text-center py-20">
@@ -180,4 +200,4 @@ const [liked, setLiked] = useState(false);
 
 export default ReadBlog;
 
-// implement the like feature and comment feature
+// Work on the comment or work on admin panel to add featured blog or delete the user or blog something like that

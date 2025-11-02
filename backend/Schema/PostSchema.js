@@ -13,6 +13,7 @@ const postSchema = new mongoose.Schema({
         createdAt: { type: Date, default: Date.now }
     }],
     views: { type: Number, default: 0 },
+    // views: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, can change but logic should also be change
     status: { type: String, enum: ["draft", "published"], default: "published" },
     feature: { type: Boolean, default: false }
 }, { timestamps: true })
