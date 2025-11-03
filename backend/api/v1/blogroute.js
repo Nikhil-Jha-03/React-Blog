@@ -1,10 +1,11 @@
-import { Router } from "express";
+import { Router, text } from "express";
 import upload from "../../config/multer.js"
 import postModel from "../../Schema/postSchema.js";
 import userModel from "../../Schema/UserSchema.js";
 import imageKitKey from "../../utils/imagekit.js";
 import CategoryModel from '../../Schema/BlogCategorySchema.js'
 import generateAiDescription from "../../config/GeminiAI.js";
+import commentModel from "../../Schema/CommentSchema.js";
 
 const router = Router();
 
@@ -234,7 +235,7 @@ router.get("/getblogbyid/:id", async (req, res) => {
                 message: "Error, Blog not found",
             });
         }
-        const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name");
+        const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name").populate("comments");
         const likedByCurrentUser = blog.like.includes(userId);
 
         if (!blog) {
@@ -531,9 +532,9 @@ router.patch("/likepost", async (req, res) => {
             ? { $pull: { like: userId } }
             : { $addToSet: { like: userId } };
 
-            
-            const updatedPost = await postModel.findByIdAndUpdate(blogId, updateOperation, { new: true });
-            const likedByCurrentUser = updatedPost.like.includes(userId);
+
+        const updatedPost = await postModel.findByIdAndUpdate(blogId, updateOperation, { new: true });
+        const likedByCurrentUser = updatedPost.like.includes(userId);
 
         if (!updatedPost) {
             return res.status(500).json({ success: false, message: "Failed to update post" });
@@ -542,7 +543,7 @@ router.patch("/likepost", async (req, res) => {
         return res.status(200).json({
             success: true,
             message: post.like.includes(userId) ? "Post Disliked" : "Post Liked",
-            likedByCurrentUser:likedByCurrentUser
+            likedByCurrentUser: likedByCurrentUser
         });
 
     } catch (error) {
@@ -551,8 +552,6 @@ router.patch("/likepost", async (req, res) => {
     }
 });
 
-
-// view post - have to change the logic later wrt to view field set to objectid
 router.patch("/postviewed", async (req, res) => {
     try {
         const user = await userModel.findById(req.userId);
@@ -560,7 +559,7 @@ router.patch("/postviewed", async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        const blogId = req.body.id;
+        const blogId = req.body.blogId;
         const post = await postModel.findById(blogId);
 
         if (!post) {
@@ -569,18 +568,11 @@ router.patch("/postviewed", async (req, res) => {
 
         const userId = user._id;
 
-        // Toggle like
-
         if (post.views.includes(userId)) {
             return
         }
 
-        const updateOperation = post.like.includes(userId)
-            ? { $pull: { like: userId } }
-            : { $addToSet: { views: userId } };
-
-            
-        const updatedPost = await postModel.findByIdAndUpdate(blogId,{ $addToSet: { views: userId } }, { new: true });
+        const updatedPost = await postModel.findByIdAndUpdate(blogId, { $addToSet: { views: userId } }, { new: true });
 
         if (!updatedPost) {
             return res.status(500).json({ success: false, message: "Failed to view the post" });
@@ -588,7 +580,6 @@ router.patch("/postviewed", async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: post.like.includes(userId) ? "Post already view" : "Post view",
         });
 
     } catch (error) {
@@ -596,6 +587,52 @@ router.patch("/postviewed", async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
+
+router.post("/addcomment", async (req, res) => {
+    try {
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const { blogId, comment } = req.body;
+
+        if (!blogId) {
+            return res.status(400).json({ success: false, message: "Blog ID is required" });
+        }
+
+        if (!comment || comment.trim() === '') {
+            return res.status(400).json({ success: false, message: "Enter a valid comment" });
+        }
+
+        const postExist = await postModel.findById(blogId);
+        if (!postExist) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+
+        const saveComment = await commentModel.create({
+            userId: user._id,
+            text: comment,
+            blogId: postExist._id
+        });
+
+        await postModel.findByIdAndUpdate(blogId, {
+            $push: { comments: saveComment._id }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Comment added successfully",
+            // comment: saveComment
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+
 
 
 

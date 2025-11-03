@@ -7,13 +7,8 @@ const postSchema = new mongoose.Schema({
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     like: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    comments: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        text: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now }
-    }],
-    views: { type: Number, default: 0 },
-    // views: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, can change but logic should also be change
+    comments: [{type:mongoose.Schema.Types.ObjectId,ref:"Comment"}],
+    views: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: { type: String, enum: ["draft", "published"], default: "published" },
     feature: { type: Boolean, default: false }
 }, { timestamps: true })

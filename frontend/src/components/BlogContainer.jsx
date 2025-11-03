@@ -3,7 +3,6 @@ import { ArrowRight, Heart, Eye } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const BlogContainer = ({ index, post }) => {
-    console.log(post)
     const navigate = useNavigate()
     return (
         <article onClick={()=>{
@@ -31,11 +30,11 @@ const BlogContainer = ({ index, post }) => {
                 <div className="flex items-center space-x-4 text-gray-500 text-sm">
                     <div className="flex items-center space-x-1">
                         <Heart size={14} />
-                        <span>{post.like.length || 0}</span>
+                        <span>{post?.like?.length || 0}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                         <Eye size={14} />
-                        <span>{post.views.length || 10}</span>
+                        <span>{post?.views?.length || 10}</span>
                     </div>
                 </div>
             </div>

@@ -3,13 +3,19 @@ import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 import { useParams } from 'react-router-dom';
 import { Calendar, Eye, Heart, User, Tag } from 'lucide-react';
+import CommentComponent from '../components/CommentComponent';
+import { toast } from 'react-toastify'
 
 
 const ReadBlog = () => {
   const blogId = useParams().id;
   const [blog, setBlog] = useState(null);
+  const [blogComments, setBlogComments] = useState(null);
   const { token } = useAuth();
-  const [blogLiked,setBlogLiked] = useState(false)
+  const [blogLiked, setBlogLiked] = useState(false)
+  const [comment, setComment] = useState('')
+  const isAddCommentAllowed = comment.trim() !== '' || comment !== ''
+
 
 
   const fetchBlog = async () => {
@@ -25,7 +31,7 @@ const ReadBlog = () => {
       if (response?.data) {
         setBlog(response.data.data)
         setBlogLiked(response?.data.likedByCurrentUser || false)
-        console.log(response.data.data)
+        setBlogComments(response?.data?.data?.comments || [])
       }
 
     } catch (error) {
@@ -41,22 +47,29 @@ const ReadBlog = () => {
         Authorization: `Bearer ${token}`
       }
     })
-
-    console.log(response.data)
     setBlogLiked(response?.data.likedByCurrentUser || false)
-
-
   }
 
-  
+  const addComment = async()=>{
+    const response = await api.post("/api/v1/blog/addcomment", { blogId,comment }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (response?.data?.success) {
+      console.log(response.data)
+     return toast.success("Commented Successfully")
+    }
+      toast.error("Something went wrong")
+  }
 
   useEffect(() => {
-    // can enable later after changing the backend logic
-    // api.patch("/api/v1/blog/postviewed", { blogId }, {
-    //   headers: {
-    //     Authorization: `Bearer ${token}`
-    //   }
-    // })
+    api.patch("/api/v1/blog/postviewed", { blogId }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
 
     fetchBlog();
   }, [blogLiked]);
@@ -119,7 +132,7 @@ const ReadBlog = () => {
                 <span>{blog?.views?.length || 10} views</span>
               </div>
               <div className="flex items-center gap-2">
-                <Heart className={`w-4 h-4 ${blogLiked ? "text-red-500 fill-red-500"  : "text-text-gray-400"} `} />
+                <Heart className={`w-4 h-4 ${blogLiked ? "text-red-500 fill-red-500" : "text-text-gray-400"} `} />
                 <span>{blog.like.length} likes</span>
               </div>
             </div>
@@ -184,6 +197,31 @@ const ReadBlog = () => {
               <div className="flex items-center gap-4 text-gray-400">
                 <span className="text-sm">{blog.comments.length} Comments</span>
               </div>
+
+            </div>
+
+
+            {/* Comments */}
+            <div className="flex flex-col p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+              <div><h1 className='text-xl text-gray-400'>Comments</h1></div>
+
+              <div className='mt-5'>
+                <textarea
+                onChange={(e)=> setComment(e.currentTarget.value) }
+                  id="comment"
+                  name="comment"
+                  placeholder="Write your thoughts here..."
+                  className="bg-gray-800 text-gray-200 w-full rounded-xl outline-none p-3 border border-gray-700 focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all shadow-sm placeholder-gray-400 resize-none focus:shadow-[0_0_10px_2px_rgba(59,130,246,0.7)]"
+                  rows="4"
+                />
+
+                <button disabled={!isAddCommentAllowed} onClick={()=>addComment()} className={`${comment.trim() !== '' || comment !== '' ? "text-sm bg-zinc-300 rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 cursor-pointer font-bold" : "text-sm  rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 font-bold cursor-not-allowed bg-gray-600"} `}>Add Comment</button>
+              </div>
+
+              <div className='mt-5'>
+                <CommentComponent comment={blogComments}/>
+              </div>
+
             </div>
 
           </article>
