@@ -14,6 +14,7 @@ const ReadBlog = () => {
   const { token } = useAuth();
   const [blogLiked, setBlogLiked] = useState(false)
   const [comment, setComment] = useState('')
+  const [commentDisplay, setCommentDisplay] = useState([])
   const isAddCommentAllowed = comment.trim() !== '' || comment !== ''
 
 
@@ -31,7 +32,8 @@ const ReadBlog = () => {
       if (response?.data) {
         setBlog(response.data.data)
         setBlogLiked(response?.data.likedByCurrentUser || false)
-        setBlogComments(response?.data?.data?.comments || [])
+        setCommentDisplay(response?.data?.data?.comments || [])
+        console.log(response?.data?.data?.comments)
       }
 
     } catch (error) {
@@ -50,18 +52,17 @@ const ReadBlog = () => {
     setBlogLiked(response?.data.likedByCurrentUser || false)
   }
 
-  const addComment = async()=>{
-    const response = await api.post("/api/v1/blog/addcomment", { blogId,comment }, {
+  const addComment = async () => {
+    const response = await api.post("/api/v1/blog/addcomment", { blogId, comment }, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
     if (response?.data?.success) {
-      console.log(response.data)
-     return toast.success("Commented Successfully")
+      return toast.success("Commented Successfully")
     }
-      toast.error("Something went wrong")
+    toast.error("Something went wrong")
   }
 
   useEffect(() => {
@@ -73,7 +74,6 @@ const ReadBlog = () => {
 
     fetchBlog();
   }, [blogLiked]);
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -160,7 +160,7 @@ const ReadBlog = () => {
             </div>
 
             {/* Article Footer */}
-            <div className="pt-8 border-t border-gray-800">
+            <div className="pt-8 border-t border-gray-800 ">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -182,7 +182,7 @@ const ReadBlog = () => {
 
 
             {/* Interaction Bar */}
-            <div className="flex items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+            <div className="flex  items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
               <button
                 onClick={likePost}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${blogLiked
@@ -202,26 +202,44 @@ const ReadBlog = () => {
 
 
             {/* Comments */}
-            <div className="flex flex-col p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+            <div className="flex flex-col p-6 bg-gray-900/50 rounded-xl border border-gray-800 transition-all duration-300">
               <div><h1 className='text-xl text-gray-400'>Comments</h1></div>
 
-              <div className='mt-5'>
+              <div className='mt-5 transition-all duration-300'>
                 <textarea
-                onChange={(e)=> setComment(e.currentTarget.value) }
+                  onChange={(e) => setComment(e.currentTarget.value)}
                   id="comment"
                   name="comment"
                   placeholder="Write your thoughts here..."
                   className="bg-gray-800 text-gray-200 w-full rounded-xl outline-none p-3 border border-gray-700 focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all shadow-sm placeholder-gray-400 resize-none focus:shadow-[0_0_10px_2px_rgba(59,130,246,0.7)]"
-                  rows="4"
+                  rows="2"
                 />
 
-                <button disabled={!isAddCommentAllowed} onClick={()=>addComment()} className={`${comment.trim() !== '' || comment !== '' ? "text-sm bg-zinc-300 rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 cursor-pointer font-bold" : "text-sm  rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 font-bold cursor-not-allowed bg-gray-600"} `}>Add Comment</button>
-              </div>
+                {isAddCommentAllowed && (
 
+                  <button disabled={!isAddCommentAllowed} onClick={() => addComment()} className={`${comment.trim() !== '' || comment !== '' ? "text-sm bg-zinc-300 rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 cursor-pointer font-bold" : "text-sm  rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 font-bold cursor-not-allowed bg-gray-600"} `}>Add Comment</button>
+                )}
+              </div>
+            </div>
+
+            {/* actual comment */}
+            <div className="flex flex-col p-6 bg-gray-900/50 rounded-xl border border-gray-800">
               <div className='mt-5'>
-                <CommentComponent comment={blogComments}/>
-              </div>
+                {commentDisplay?.length > 0 ? (
+                  <div className='flex flex-col gap-3'>
+                    {commentDisplay.map((items)=>(
+                    <CommentComponent key={items._id} blogComment={items} userName={"Nikhil"}/>
+                    ))}
+                  </div>
 
+                ) : (
+                  <div>
+                    <h1>No Comment</h1>
+                  </div>
+                )
+                }
+
+              </div>
             </div>
 
           </article>

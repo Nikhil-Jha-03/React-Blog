@@ -235,7 +235,16 @@ router.get("/getblogbyid/:id", async (req, res) => {
                 message: "Error, Blog not found",
             });
         }
-        const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name").populate("comments");
+
+        // can create a sepreate endpoint to get comment
+        const blog = await postModel.findById(blogId).populate('category', 'category').populate("userId", "name").populate({
+            path: "comments",
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: "userId",
+                select: "name" // you can select what you want here
+            }
+        });
         const likedByCurrentUser = blog.like.includes(userId);
 
         if (!blog) {
@@ -623,7 +632,6 @@ router.post("/addcomment", async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Comment added successfully",
-            // comment: saveComment
         });
 
     } catch (error) {
@@ -631,9 +639,5 @@ router.post("/addcomment", async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
-
-
-
-
 
 export default router;
