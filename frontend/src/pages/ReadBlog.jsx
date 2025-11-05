@@ -1,28 +1,28 @@
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
+import useUser from '../hooks/useUser';
 import { useParams } from 'react-router-dom';
 import { Calendar, Eye, Heart, User, Tag } from 'lucide-react';
 import CommentComponent from '../components/CommentComponent';
 import { toast } from 'react-toastify'
 
-
 const ReadBlog = () => {
   const blogId = useParams().id;
   const [blog, setBlog] = useState(null);
-  const [blogComments, setBlogComments] = useState(null);
   const { token } = useAuth();
-  const [blogLiked, setBlogLiked] = useState(false)
-  const [comment, setComment] = useState('')
-  const [commentDisplay, setCommentDisplay] = useState([])
-  const isAddCommentAllowed = comment.trim() !== '' || comment !== ''
+  const { user } = useUser(); 
+  const [blogLiked, setBlogLiked] = useState(false);
+  const [comment, setComment] = useState('');
+  const [commentDisplay, setCommentDisplay] = useState([]);
 
-
+  const isAddCommentAllowed = comment.trim() !== '';
 
   const fetchBlog = async () => {
-    console.log(token)
     if (!token) return;
     if (!blogId) return;
+    if (!user?._id) return;
+    
     try {
       const response = await api.get(`/api/v1/blog/getblogbyid/${blogId}`, {
         headers: {
@@ -33,47 +33,61 @@ const ReadBlog = () => {
         setBlog(response.data.data)
         setBlogLiked(response?.data.likedByCurrentUser || false)
         setCommentDisplay(response?.data?.data?.comments || [])
-        console.log(response?.data?.data?.comments)
       }
 
     } catch (error) {
       console.error("Error fetching blog:", error);
       setBlog(null);
     }
-
   }
 
   const likePost = async () => {
-    const response = await api.patch("/api/v1/blog/likepost", { blogId }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    setBlogLiked(response?.data.likedByCurrentUser || false)
+    try {
+      const response = await api.patch("/api/v1/blog/likepost", { blogId }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      fetchBlog()
+
+      setBlogLiked(response?.data.likedByCurrentUser || false)
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
   }
 
   const addComment = async () => {
-    const response = await api.post("/api/v1/blog/addcomment", { blogId, comment }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    try {
+      const response = await api.post("/api/v1/blog/addcomment", { blogId, comment }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
 
-    if (response?.data?.success) {
-      return toast.success("Commented Successfully")
+      if (response?.data?.success) {
+        setComment('')
+        fetchBlog()
+        return toast.success("Commented Successfully")
+      }
+      toast.error("Something went wrong")
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error("Failed to add comment")
     }
-    toast.error("Something went wrong")
   }
 
   useEffect(() => {
-    api.patch("/api/v1/blog/postviewed", { blogId }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    if (user?._id && blogId) {
+      api.patch("/api/v1/blog/postviewed", { blogId }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
 
-    fetchBlog();
-  }, [blogLiked]);
+      fetchBlog();
+    }
+  }, [user?._id, blogId]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -83,6 +97,14 @@ const ReadBlog = () => {
       day: 'numeric'
     });
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -129,10 +151,10 @@ const ReadBlog = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
-                <span>{blog?.views?.length || 10} views</span>
+                <span>{blog?.views?.length || 0} views</span>
               </div>
               <div className="flex items-center gap-2">
-                <Heart className={`w-4 h-4 ${blogLiked ? "text-red-500 fill-red-500" : "text-text-gray-400"} `} />
+                <Heart className={`w-4 h-4 ${blogLiked ? "text-red-500 fill-red-500" : "text-gray-400"} `} />
                 <span>{blog.like.length} likes</span>
               </div>
             </div>
@@ -180,9 +202,8 @@ const ReadBlog = () => {
               </div>
             </div>
 
-
             {/* Interaction Bar */}
-            <div className="flex  items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
+            <div className="flex items-center justify-between p-6 bg-gray-900/50 rounded-xl border border-gray-800">
               <button
                 onClick={likePost}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${blogLiked
@@ -197,9 +218,7 @@ const ReadBlog = () => {
               <div className="flex items-center gap-4 text-gray-400">
                 <span className="text-sm">{blog.comments.length} Comments</span>
               </div>
-
             </div>
-
 
             {/* Comments */}
             <div className="flex flex-col p-6 bg-gray-900/50 rounded-xl border border-gray-800 transition-all duration-300">
@@ -207,7 +226,8 @@ const ReadBlog = () => {
 
               <div className='mt-5 transition-all duration-300'>
                 <textarea
-                  onChange={(e) => setComment(e.currentTarget.value)}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
                   id="comment"
                   name="comment"
                   placeholder="Write your thoughts here..."
@@ -216,8 +236,13 @@ const ReadBlog = () => {
                 />
 
                 {isAddCommentAllowed && (
-
-                  <button disabled={!isAddCommentAllowed} onClick={() => addComment()} className={`${comment.trim() !== '' || comment !== '' ? "text-sm bg-zinc-300 rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 cursor-pointer font-bold" : "text-sm  rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 font-bold cursor-not-allowed bg-gray-600"} `}>Add Comment</button>
+                  <button 
+                    disabled={!isAddCommentAllowed} 
+                    onClick={addComment} 
+                    className="text-sm bg-zinc-300 rounded-lg py-2 px-3 mt-2 hover:scale-105 transition-all duration-300 cursor-pointer font-bold"
+                  >
+                    Add Comment
+                  </button>
                 )}
               </div>
             </div>
@@ -227,26 +252,27 @@ const ReadBlog = () => {
               <div className='mt-5'>
                 {commentDisplay?.length > 0 ? (
                   <div className='flex flex-col gap-3'>
-                    {commentDisplay.map((items)=>(
-                    <CommentComponent key={items._id} blogComment={items} userName={"Nikhil"}/>
+                    {commentDisplay.map((items) => (
+                      <CommentComponent 
+                        key={items._id} 
+                        blogComment={items} 
+                        userId={user._id}
+                        reloadParent={fetchBlog} 
+                      />
                     ))}
                   </div>
-
                 ) : (
                   <div>
-                    <h1>No Comment</h1>
+                    <h1 className="text-gray-400">No Comments</h1>
                   </div>
-                )
-                }
-
+                )}
               </div>
             </div>
 
           </article>
         ) : (
           <div className="text-center py-20">
-            <h2 className="text-3xl font-bold text-gray-500">No data available</h2>
-            <p className="text-gray-600 mt-2">The blog post could not be loaded.</p>
+            <h2 className="text-3xl font-bold text-gray-500">Loading blog...</h2>
           </div>
         )}
       </div>
@@ -255,5 +281,3 @@ const ReadBlog = () => {
 }
 
 export default ReadBlog;
-
-// Work on the comment or work on admin panel to add featured blog or delete the user or blog something like that
