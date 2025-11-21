@@ -141,7 +141,6 @@ router.post("/register", async (req, res) => {
 router.get("/getCurrentUser", isLoggedIn, async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userId }).select("email name _id isAccountVerified aiCredit");
-
     if (!user) {
       return res.status(404).json({
         success: false,

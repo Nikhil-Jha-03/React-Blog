@@ -54,7 +54,6 @@ const AuthPage = () => {
           <Button text={"Sign Up"} isLogin={!isLogin} onclick={() => setIsLogin(false)} />
           <Button text={"Login"} isLogin={isLogin} onclick={() => setIsLogin(true)} />
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           {!isLogin && (
             <div className='space-y-6'>
@@ -123,6 +122,7 @@ const AuthPage = () => {
                 <Button type='submit' classNametext={'mt-6 !bg-black !text-white'} text={"Create Account"} />
               </div>
             </div>
+
 
           )}
 

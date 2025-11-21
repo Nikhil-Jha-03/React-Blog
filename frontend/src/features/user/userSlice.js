@@ -47,7 +47,3 @@ const userSlice = createSlice({
 })
 
 export default userSlice.reducer;
-
-
-
-// handle the error when user deleted from the user should not be signin

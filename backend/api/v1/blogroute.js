@@ -640,4 +640,53 @@ router.post("/addcomment", async (req, res) => {
     }
 });
 
+router.patch("/comment/like", async (req, res) => {
+    try {
+       
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+         const userId = user._id;
+
+        const { blogId, commentId } = req.body;
+
+        if (!blogId) {
+            return res.status(400).json({ success: false, message: "Blog ID is required" });
+        }
+
+        if (!commentId) {
+            return res.status(400).json({ success: false, message: "Comment ID is required" });
+        }
+
+        const blogExist = await postModel.findById(blogId);
+        if (!blogExist) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+
+        const commentExist = await commentModel.findById(commentId);
+        if (!commentExist) {
+            return res.status(404).json({ success: false, message: "Comment not found" });
+        }
+
+        const updateOperation = commentExist.likes.includes(userId)
+            ? { $pull: { likes: userId } }
+            : { $addToSet: { likes: userId } };
+
+            const updateLike = await commentModel.findByIdAndUpdate(commentId,updateOperation,{new:true})
+            
+            const likedByCurrentUser = updateLike.likes.includes(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Comment added successfully",
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
 export default router;
