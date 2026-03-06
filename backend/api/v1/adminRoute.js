@@ -3,31 +3,76 @@ import bcrypt from 'bcrypt';
 import { verifyAdminToken } from '../../middleware/isAdminLoggedin.js';
 import adminModel from '../../Schema/AdminSchema.js';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 
 
 const router = express.Router();
 
-// JWT Secret Key (Store this in .env file in production)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
+const adminSignupSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters'),
+  email: z.string().trim().email('Invalid email format'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(64, 'Password must be at most 64 characters')
+});
+
+const adminLoginSchema = z.object({
+  email: z.string().trim().email('Invalid email format'),
+  password: z.string().min(1, 'Password is required')
+});
+
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  return process.env.JWT_SECRET;
+};
+
+const formatValidationErrors = (issues) =>
+  issues.map((issue) => ({
+    field: issue.path.join('.'),
+    message: issue.message
+  }));
+
+const createAdminToken = (admin) =>
+  jwt.sign(
+    {
+      id: admin._id,
+      role: 'admin'
+    },
+    getJwtSecret(),
+    { expiresIn: '1d' }
+  );
+
+const buildAdminPayload = (admin) => ({
+  id: admin._id,
+  username: admin.username,
+  email: admin.email
+});
 
 // 1. ADMIN SIGNUP ROUTE
 router.post('/signup', async (req, res) => {
-  console.log("working")
   try {
-    const { username, email, password } = req.body;
-
-    // Validation
-    if (!username || !email || !password) {
+    const parsedData = adminSignupSchema.safeParse(req.body);
+    if (!parsedData.success) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide username, email, and password'
+        error: formatValidationErrors(parsedData.error.issues)
       });
     }
 
-    // Check if admin already exists in signup collection
+    const { username, email, password } = parsedData.data;
+    const normalizedUsername = username.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
     const existingAdmin = await adminModel.findOne({
-      $or: [{ email }, { username }]
+      $or: [{ email: normalizedEmail }, { username: normalizedUsername }]
     });
 
     if (existingAdmin) {
@@ -37,29 +82,28 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new admin in signup collection
     const newAdmin = new adminModel({
-      username,
-      email,
+      username: normalizedUsername,
+      email: normalizedEmail,
       password: hashedPassword
     });
 
     await newAdmin.save();
+    const token = createAdminToken(newAdmin);
 
 
-    res.status(201).json({
-      success: true,
-      message: 'Admin registered successfully',
-      admin: {
-        id: newAdmin._id,
-        username: newAdmin.username,
-        email: newAdmin.email
-      }
-    });
+    return res
+      .setHeader('Authorization', `Bearer ${token}`)
+      .status(201)
+      .json({
+        success: true,
+        message: 'Admin registered successfully',
+        token,
+        admin: buildAdminPayload(newAdmin)
+      });
 
   } catch (error) {
     console.error('Signup Error:', error);
@@ -74,18 +118,17 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    // Validation
-    if (!email || !password) {
+    const parsedData = adminLoginSchema.safeParse(req.body);
+    if (!parsedData.success) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
+        error: formatValidationErrors(parsedData.error.issues)
       });
     }
 
-    // Find admin in login collection
-    const admin = await adminModel.findOne({ email });
+    const { email, password } = parsedData.data;
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await adminModel.findOne({ email: normalizedEmail });
 
     if (!admin) {
       return res.status(401).json({
@@ -94,7 +137,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check password
     const isPasswordValid = await bcrypt.compare(password, admin.password);
 
     if (!isPasswordValid) {
@@ -104,27 +146,17 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: admin._id,
-        username: admin.username,
-        email: admin.email
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' } // Token expires in 24 hours
-    );
+    const token = createAdminToken(admin);
 
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      token,
-      admin: {
-        id: admin._id,
-        username: admin.username,
-        email: admin.email
-      }
-    });
+    return res
+      .setHeader('Authorization', `Bearer ${token}`)
+      .status(200)
+      .json({
+        success: true,
+        message: 'Login successful',
+        token,
+        admin: buildAdminPayload(admin)
+      });
 
   } catch (error) {
     console.error('Login Error:', error);
@@ -137,23 +169,15 @@ router.post('/login', async (req, res) => {
 
 
 // 4. PROTECTED ROUTE EXAMPLE
-router.get('/profile', verifyAdminToken, async (req, res) => {
+router.get('/getCurrentAdmin', verifyAdminToken, async (req, res) => {
   try {
-    const admin = await adminModel.findById(req.admin.id).select('-password');
-    
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: 'Admin not found'
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      admin
+      admin: buildAdminPayload(req.admin)
     });
 
   } catch (error) {
+    console.error('Get current admin error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -161,11 +185,15 @@ router.get('/profile', verifyAdminToken, async (req, res) => {
   }
 });
 
+router.get('/profile', verifyAdminToken, (req, res) =>
+  res.status(200).json({
+    success: true,
+    admin: buildAdminPayload(req.admin)
+  })
+);
 
-// 5. LOGOUT ROUTE (Optional)
-router.post('/admin/logout', verifyAdminToken, (req, res) => {
-  // With JWT, logout is handled on frontend by removing token
-  // This endpoint is optional, mainly for logging purposes
+// 5. LOGOUT ROUTE
+router.post('/logout', verifyAdminToken, (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Logged out successfully'

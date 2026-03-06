@@ -1,6 +1,13 @@
 import jwt from 'jsonwebtoken';
 import adminModel from '../Schema/AdminSchema.js';
 
+const getJwtSecret = () => {
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+    }
+    return process.env.JWT_SECRET;
+};
+
 export const verifyAdminToken = async (req, res, next) => {
     try {
         const header = req.header('Authorization');
@@ -12,7 +19,14 @@ export const verifyAdminToken = async (req, res, next) => {
             });
         }
 
-        const token = header.split(' ')[1];
+        if (!/^Bearer\s+/i.test(header)) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authorization format"
+            });
+        }
+
+        const token = header.split(/\s+/)[1];
 
         if (!token) {
             return res.status(401).json({
@@ -21,17 +35,15 @@ export const verifyAdminToken = async (req, res, next) => {
             });
         }
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, getJwtSecret());
 
-        if (!decoded) {
+        if (!decoded || !decoded.id || decoded.role !== 'admin') {
             return res.status(401).json({
                 success: false,
                 message: "Invalid token payload"
             });
         }
 
-        // Fetch admin from DB
         const admin = await adminModel.findById(decoded.id).select("-password");
 
         if (!admin) {
@@ -41,8 +53,8 @@ export const verifyAdminToken = async (req, res, next) => {
             });
         }
 
-        req.adminId = admin._id;  // Attach admin ID
-        req.admin = admin;        // (optional) Attach full admin object
+        req.adminId = admin._id;
+        req.admin = admin;
         next();
 
     } catch (error) {

@@ -1,25 +1,36 @@
 import { lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const AdminAuthPage = lazy(() => import("./pages/AdminAuthPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogUpload = lazy(() => import("./pages/BlogUpload"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Layout = lazy(() => import("./pages/Layout"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 const MyPost = lazy(() => import("./pages/MyPost"));
 const EditBlog = lazy(() => import("./pages/EditBlog"));
 import { useSelector, useDispatch } from 'react-redux';
 import { token_check } from './features/auth/authSlice';
+import { admin_token_check, getCurrentAdmin } from './features/admin/adminAuthSlice';
 import ReadBlog from './pages/ReadBlog';
 
 
 const App = () => {
   const dispatch = useDispatch();
-  const isUserLoggedIn = useSelector(state => state.auth);
+  const userAuth = useSelector(state => state.auth);
+  const adminAuth = useSelector(state => state.adminAuth);
+
   useEffect(() => {
-    if (isUserLoggedIn.isLoggedIn) {
-      dispatch(token_check())
-    }
+    dispatch(token_check());
+    dispatch(admin_token_check());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (adminAuth.isAdminLoggedIn && adminAuth.token) {
+      dispatch(getCurrentAdmin());
+    }
+  }, [dispatch, adminAuth.isAdminLoggedIn, adminAuth.token]);
 
   return (
     <Routes>
@@ -35,16 +46,25 @@ const App = () => {
 
 
       <Route path='auth' element={<AuthPage />}></Route>
+      <Route
+        path='/admin/auth'
+        element={adminAuth.isAdminLoggedIn ? <Navigate to="/admin" /> : <AdminAuthPage />}
+      />
+      <Route
+        path='/admin'
+        element={adminAuth.isAdminLoggedIn ? <AdminDashboard /> : <Navigate to="/admin/auth" />}
+      />
 
       <Route path="/" element={<Layout />}>
 
         <Route index element={<LandingPage />} />
+        <Route path='/about' element={<AboutPage />} />
 
-        <Route path='/blogupload' element={isUserLoggedIn.isLoggedIn ? <BlogUpload /> : <LandingPage />} />
-        <Route path='/blog' element={isUserLoggedIn.isLoggedIn ? <Blog /> : <LandingPage />} />
-        <Route path='/myblogs' element={isUserLoggedIn.isLoggedIn ? <MyPost /> : <LandingPage />} />
-        <Route path='/myblogs/edit/:id' element={isUserLoggedIn.isLoggedIn ? <EditBlog/> : <LandingPage />} />
-        <Route path='/readblog/:id' element={isUserLoggedIn.isLoggedIn ? <ReadBlog/> : <LandingPage />} />
+        <Route path='/blogupload' element={userAuth.isLoggedIn ? <BlogUpload /> : <LandingPage />} />
+        <Route path='/blog' element={userAuth.isLoggedIn ? <Blog /> : <LandingPage />} />
+        <Route path='/myblogs' element={userAuth.isLoggedIn ? <MyPost /> : <LandingPage />} />
+        <Route path='/myblogs/edit/:id' element={userAuth.isLoggedIn ? <EditBlog/> : <LandingPage />} />
+        <Route path='/readblog/:id' element={userAuth.isLoggedIn ? <ReadBlog/> : <LandingPage />} />
 
       </Route>
     </Routes>

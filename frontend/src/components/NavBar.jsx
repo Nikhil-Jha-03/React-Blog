@@ -15,6 +15,7 @@ const NavBar = () => {
 
 
   const auth = useSelector(state => state.auth) || {};
+  const adminAuth = useSelector(state => state.adminAuth) || {};
 
   const navRef = useRef(null);
   const profileRef = useRef(null);
@@ -69,6 +70,7 @@ const NavBar = () => {
               <NavLinkComponent to={'/'} name={"Home"} />
               <NavLinkComponent to={'/blog'} name={"Blog"} />
               <NavLinkComponent to={'/about'} name={"About"} />
+              <NavLinkComponent to={adminAuth.isAdminLoggedIn ? '/admin' : '/admin/auth'} name={"Admin"} />
 
               {auth.isLoggedIn ? (<div className="relative">
                 <button
@@ -85,7 +87,7 @@ const NavBar = () => {
                 )}
 
               </div>) : (<Link to={"/auth"} className="bg-white text-black px-4 py-1 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 flex items-center space-x-2 hover:scale-105">
-                Please Login
+                Login
               </Link>)}
 
 
@@ -107,6 +109,7 @@ const NavBar = () => {
               <NavLinkComponent to={'/'} name={"Home"} />
               <NavLinkComponent to={'/blog'} name={"Blog"} />
               <NavLinkComponent to={'/about'} name={"About"} />
+              <NavLinkComponent to={adminAuth.isAdminLoggedIn ? '/admin' : '/admin/auth'} name={"Admin"} />
 
               {auth.isLoggedIn ? (
                 <UserInfo />
