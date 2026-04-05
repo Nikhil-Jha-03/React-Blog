@@ -1,6 +1,6 @@
 import { Router, text } from "express";
 import upload from "../../config/multer.js"
-import postModel from "../../Schema/postSchema.js";
+import postModel from "../../Schema/PostSchema.js";
 import userModel from "../../Schema/UserSchema.js";
 import imageKitKey from "../../utils/imagekit.js";
 import CategoryModel from '../../Schema/BlogCategorySchema.js'
@@ -491,8 +491,8 @@ router.put("/edit/:id", upload.single("image"), async (req, res) => {
             }
         }
 
-        // 4. Update blog with partial fields
-        const data = req.body;
+        // 4. Update blog with partial fields (feature is admin-only)
+        const { feature, ...data } = req.body;
 
         await postModel.findByIdAndUpdate(
             id,

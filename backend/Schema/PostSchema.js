@@ -13,6 +13,6 @@ const postSchema = new mongoose.Schema({
     feature: { type: Boolean, default: false }
 }, { timestamps: true })
 
-const postModel = mongoose.model('Post', postSchema)
+const postModel = mongoose.models.Post || mongoose.model('Post', postSchema);
 
 export default postModel;

@@ -17,6 +17,8 @@ router.post("/login", async (req, res) => {
   try {
     const parsedData = LoginUser.safeParse(req.body);
 
+    console.log(parsedData)
+
     if (!parsedData.success) {
       const formattedErrors = parsedData.error.issues.map(e => ({
         field: e.path.join("."),

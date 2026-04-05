@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, BookOpen, Users, TrendingUp, Star } from 'lucide-react';
 import BlogContainer from '../components/BlogContainer';
+import api from '../api/axios';
 
 export default function LandingPage() {
+  const [featuredPosts, setFeaturedPosts] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
   
   const stats = [
     { icon: BookOpen, value: "250+", label: "Articles" },
@@ -11,11 +14,49 @@ export default function LandingPage() {
     { icon: Star, value: "4.9", label: "Rating" }
   ];
 
-  const featuredPosts = [
-    { title: "The Future of Web Development", excerpt: "Exploring the latest trends and technologies shaping our digital landscape.", readTime: "5 min read" },
-    { title: "Mastering the Art of Storytelling", excerpt: "How to craft compelling narratives that resonate with your audience.", readTime: "8 min read" },
-    { title: "Design Psychology Principles", excerpt: "Understanding the psychological impact of design choices on user behavior.", readTime: "6 min read" }
-  ];
+  const stripHtml = (value) => {
+    if (!value) return "";
+    return value.replace(/<[^>]*>?/gm, "");
+  };
+
+  const estimateReadTime = (text) => {
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    return `${minutes} min read`;
+  };
+
+  const fetchFeaturedBlogs = async () => {
+    try {
+      setFeaturedLoading(true);
+      const response = await api.get("/api/v1/blog/featured");
+      const blogs = response?.data?.blogs || [];
+
+      const mappedFeaturedPosts = blogs.map((blog) => {
+        const plainDescription = stripHtml(blog.description || "");
+        return {
+          ...blog,
+          excerpt:
+            plainDescription.length > 120
+              ? `${plainDescription.slice(0, 120)}...`
+              : plainDescription,
+          readTime: estimateReadTime(plainDescription),
+          publishedDate: new Date(blog.createdAt).toLocaleDateString(),
+          author: blog.userId?.name || "Unknown"
+        };
+      });
+
+      setFeaturedPosts(mappedFeaturedPosts);
+    } catch (error) {
+      setFeaturedPosts([]);
+      console.error("Failed to fetch featured blogs:", error);
+    } finally {
+      setFeaturedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeaturedBlogs();
+  }, []);
 
 
   const stars = [
@@ -104,9 +145,17 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3">
-            {featuredPosts.map((post, index) => (
-              <BlogContainer key={index} post={post} />
-            ))}
+            {featuredLoading ? (
+              <p className="text-gray-400">Loading featured blogs...</p>
+            ) : featuredPosts.length > 0 ? (
+              featuredPosts.map((post) => (
+                <BlogContainer key={post._id} post={post} />
+              ))
+            ) : (
+              <p className="text-gray-400">
+                No featured blogs yet. Admin can add up to 3 featured blogs.
+              </p>
+            )}
           </div>
         </div>
       </section>
