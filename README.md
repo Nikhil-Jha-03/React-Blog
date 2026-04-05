@@ -1,34 +1,40 @@
 # React-Blog
 
-A full-stack blog platform built with React + Vite on the frontend and Node.js + Express + MongoDB on the backend.
+Full-stack blog platform built with React + Vite (frontend) and Node.js + Express + MongoDB (backend).
 
-This project supports:
-- User authentication (signup/login/logout with JWT)
-- Admin authentication (separate admin login/signup flow)
-- Blog creation with rich text editor and image upload
-- Draft and publish workflow
-- Like, comment, and unique view tracking
-- AI-assisted blog description generation (Gemini)
+## Project Status
 
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Folder Structure](#folder-structure)
-- [Features](#features)
-- [Environment Variables](#environment-variables)
-- [Getting Started](#getting-started)
-- [Run Commands](#run-commands)
-- [API Reference](#api-reference)
-- [Authentication Notes](#authentication-notes)
-- [Known Limitations](#known-limitations)
-- [Roadmap Ideas](#roadmap-ideas)
+This project is now complete for the current scope:
+- User auth + blog publishing workflow
+- Admin auth + admin dashboard
+- Admin blog/user management
+- Admin-only featured blog control (max 3)
+- Featured blogs shown on home page
 
-## Project Overview
+## Features
 
-`React-Blog` is a MERN-style blogging app where authenticated users can create and manage blog posts, while admins have a separate authentication flow and dashboard.
+### User Features
+- Register, login, logout with JWT auth
+- Create, edit, publish, and delete own blogs
+- Save drafts and publish later
+- Browse blogs, filter by category, and search by title
+- Like/unlike blogs
+- Comment and like/unlike comments
+- Unique view tracking
+- AI-generated blog description (credit-limited flow)
 
-The backend exposes REST APIs under `/api/v1`, and the frontend consumes those APIs using Axios with Redux Toolkit for state management.
+### Admin Features
+- Separate admin signup/login
+- View all blogs and all signed-up users
+- Delete any blog
+- Delete any user (with related cleanup)
+- Mark/unmark blogs as featured
+- Enforced max of 3 featured blogs
+
+### Home Page Feature Flow
+- Featured blogs are fetched from `GET /api/v1/blog/featured`
+- Only published + featured blogs are returned
+- Backend limits result to maximum 3 blogs
 
 ## Tech Stack
 
@@ -39,10 +45,9 @@ The backend exposes REST APIs under `/api/v1`, and the frontend consumes those A
 - Redux Toolkit + React Redux
 - Tailwind CSS 4
 - React Hook Form
-- TinyMCE Editor
+- TinyMCE
 - Axios
 - React Toastify
-- Lucide React icons
 
 ### Backend
 - Node.js + Express 5
@@ -50,20 +55,26 @@ The backend exposes REST APIs under `/api/v1`, and the frontend consumes those A
 - JWT (`jsonwebtoken`)
 - bcrypt
 - Zod
-- Multer (memory storage for uploads)
-- ImageKit (image hosting/transformations)
-- Nodemailer (SMTP)
-- Google GenAI SDK (`@google/genai`) for AI description generation
+- Multer
+- ImageKit
+- Nodemailer
+- Gemini SDK (`@google/genai`)
 
 ## Architecture
 
-- `frontend` (React app) handles UI, routing, state, and API requests.
-- `backend` (Express app) handles auth, blog CRUD, category management, comments, likes, views, and AI content generation.
-- JWT tokens are passed via `Authorization: Bearer <token>`.
-- Backend router mounts:
-  - `/api/v1/user`
-  - `/api/v1/blog` (protected by user auth middleware)
-  - `/api/v1/admin`
+Backend routes under `/api/v1`:
+- `/user` -> user auth routes
+- `/blog` -> mixed routes:
+  - public: featured blogs (`/blog/featured`)
+  - user-protected: blog CRUD/interaction routes
+- `/admin` -> admin auth + admin management routes
+
+Auth headers:
+- `Authorization: Bearer <token>`
+
+Local storage keys:
+- User token: `Token`
+- Admin token: `AdminToken`
 
 ## Folder Structure
 
@@ -74,23 +85,12 @@ React-Blog/
 |   |   |-- authroute.js
 |   |   |-- blogroute.js
 |   |   |-- adminRoute.js
+|   |   |-- publicBlogRoute.js
 |   |   `-- index.js
 |   |-- config/
-|   |   |-- db.js
-|   |   |-- GeminiAI.js
-|   |   |-- multer.js
-|   |   `-- nodemailer.js
 |   |-- middleware/
-|   |   |-- isLoggedin.js
-|   |   `-- isAdminLoggedin.js
 |   |-- Schema/
-|   |   |-- UserSchema.js
-|   |   |-- PostSchema.js
-|   |   |-- CommentSchema.js
-|   |   |-- BlogCategorySchema.js
-|   |   `-- AdminSchema.js
 |   |-- utils/
-|   |   `-- imagekit.js
 |   `-- index.js
 |
 `-- frontend/
@@ -105,35 +105,7 @@ React-Blog/
     `-- package.json
 ```
 
-## Features
-
-### User Features
-- Register and login with JWT-based auth
-- Fetch current logged-in user
-- Email verification flow endpoints (`sendVerifyEmail`, `verifyOtp`)
-- Browse all published blogs
-- Filter blogs by category and search by title
-- Pagination on blog listing page
-- Create blog with:
-  - Featured image upload
-  - Rich text content (TinyMCE)
-  - Category selection
-  - Publish or save as draft
-- Edit and delete own blog posts
-- Publish drafts from "My Blogs"
-- Like/unlike blogs
-- Add comments and like/unlike comments
-- Track unique views per user
-- Generate blog description using Gemini AI with daily credit logic
-
-### Admin Features
-- Separate admin signup/login
-- Protected admin profile endpoint
-- Admin dashboard with current admin details
-
 ## Environment Variables
-
-Create `.env` files in both `backend` and `frontend`.
 
 ### `backend/.env`
 
@@ -162,100 +134,91 @@ VITE_TINY_MCE_KEY=your_tinymce_api_key
 
 ## Getting Started
 
-### Prerequisites
-- Node.js 18+ (recommended)
-- npm
-- MongoDB (local or cloud)
-- ImageKit account (for image uploads)
-- Gemini API key (for AI description)
-- TinyMCE API key (for editor)
-
-### 1. Install Backend Dependencies
+### 1. Install dependencies
 
 ```bash
 cd backend
 npm install
-```
 
-### 2. Install Frontend Dependencies
-
-```bash
 cd ../frontend
 npm install
 ```
 
-### 3. Run Backend
+### 2. Run backend
 
 ```bash
 cd ../backend
 npm run dev
 ```
 
-Backend runs on `http://localhost:3000`.
-
-### 4. Run Frontend
+### 3. Run frontend
 
 ```bash
 cd ../frontend
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173` (default Vite port).
-
-## Run Commands
-
-### Backend (`backend/package.json`)
-- `npm run dev` - starts backend with nodemon
-- `npm test` - placeholder script
-
-### Frontend (`frontend/package.json`)
-- `npm run dev` - starts Vite development server
-- `npm run build` - production build
-- `npm run preview` - preview production build
-- `npm run lint` - run ESLint
+Frontend: `http://localhost:5173`  
+Backend: `http://localhost:3000`
 
 ## API Reference
 
 Base URL: `http://localhost:3000/api/v1`
 
 ### User Auth (`/user`)
+- `POST /user/register`
+- `POST /user/login`
+- `GET /user/getCurrentUser` (auth)
+- `GET /user/sendVerifyEmail` (auth)
+- `POST /user/verifyOtp` (auth)
+- `GET /user/logout` (auth)
 
-- `POST /user/register` - register user
-- `POST /user/login` - login user
-- `GET /user/getCurrentUser` - get current user (auth required)
-- `GET /user/sendVerifyEmail` - send OTP for verification (auth required)
-- `POST /user/verifyOtp` - verify OTP (auth required)
-- `GET /user/logout` - logout response endpoint (auth required)
+### Blog Public (`/blog`)
+- `GET /blog/featured` (public, max 3)
 
-### Blog (`/blog`) - User Auth Required
-
-- `GET /blog` - get all published blogs
-- `GET /blog/getuserblog` - get blogs by current user
-- `GET /blog/getEditBlog/:id` - get single blog for edit form
-- `POST /blog/post-blog` - create blog (`multipart/form-data`, includes image)
-- `PUT /blog/edit/:id` - edit blog (`multipart/form-data`, image optional)
-- `DELETE /blog/delete/:id` - delete blog
-- `PATCH /blog/drafttopublish` - publish a draft (`{ id }`)
-- `GET /blog/getblogbyid/:id` - get blog details with comments and author
-- `PATCH /blog/likepost` - toggle blog like (`{ blogId }`)
-- `PATCH /blog/postviewed` - add unique view (`{ blogId }`)
-- `POST /blog/addcomment` - add comment (`{ blogId, comment }`)
-- `PATCH /blog/comment/like` - toggle comment like (`{ blogId, commentId }`)
-- `POST /blog/post-category` - create category (`{ category }`)
-- `GET /blog/get-category` - list categories
-- `POST /blog/generateAiDescription` - generate AI description (`{ title }`)
+### Blog User-Protected (`/blog`)
+- `GET /blog`
+- `GET /blog/getuserblog`
+- `GET /blog/getEditBlog/:id`
+- `POST /blog/post-blog`
+- `PUT /blog/edit/:id`
+- `DELETE /blog/delete/:id`
+- `PATCH /blog/drafttopublish`
+- `GET /blog/getblogbyid/:id`
+- `PATCH /blog/likepost`
+- `PATCH /blog/postviewed`
+- `POST /blog/addcomment`
+- `PATCH /blog/comment/like`
+- `POST /blog/post-category`
+- `GET /blog/get-category`
+- `POST /blog/generateAiDescription`
 
 ### Admin (`/admin`)
+- `POST /admin/signup`
+- `POST /admin/login`
+- `GET /admin/getCurrentAdmin` (admin auth)
+- `GET /admin/profile` (admin auth)
+- `POST /admin/logout` (admin auth)
+- `GET /admin/blogs` (admin auth)
+- `GET /admin/users` (admin auth)
+- `DELETE /admin/blogs/:id` (admin auth)
+- `DELETE /admin/users/:id` (admin auth)
+- `PATCH /admin/blogs/:id/feature` (admin auth)
 
-- `POST /admin/signup` - register admin
-- `POST /admin/login` - login admin
-- `GET /admin/getCurrentAdmin` - get current admin (admin auth required)
-- `GET /admin/profile` - protected profile route (admin auth required)
-- `POST /admin/logout` - logout response endpoint (admin auth required)
+## Featured Blog Rules
 
-## Authentication Notes
+- Only admin can change `feature` status.
+- A maximum of 3 featured blogs is allowed.
+- Only published blogs can be featured.
+- User edit endpoint ignores any incoming `feature` field.
 
-- User token key in `localStorage`: `Token`
-- Admin token key in `localStorage`: `AdminToken`
-- Both frontend and backend use `Authorization: Bearer <token>` format.
-- User and admin auth flows are separated with different Redux slices and routes.
+## Scripts
+
+### Backend
+- `npm run dev`
+
+### Frontend
+- `npm run dev`
+- `npm run build`
+- `npm run preview`
+- `npm run lint`
