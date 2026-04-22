@@ -23,6 +23,7 @@ const MyPost = () => {
 
             if (response?.data?.success) {
                 setUserBlog(response.data.data);
+                console.log(response.data.data)
             } else {
                 setUserBlog([]);
             }
@@ -122,7 +123,7 @@ const MyPost = () => {
                                                         {items.category?.category || "Uncategorized"}
                                                     </span>
                                                     <span>{new Date(items.createdAt).toLocaleDateString()}</span>
-                                                    <span>{items.views} views</span>
+                                                    <span>{items.views?.length || 0} views</span>
                                                     <span>{items.like?.length || 0} likes</span>
                                                     <span>{items.comments?.length || 0} comments</span>
                                                     {items.status === "draft" ? (
