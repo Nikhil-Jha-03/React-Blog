@@ -119,7 +119,7 @@ const AuthPage = () => {
                   })}
                   error={errors.password}
                 />
-                <Button type='submit' classNametext={'mt-6 !bg-black !text-white'} text={"Create Account"} />
+                <Button type='submit' classNametext={'mt-6 !bg-black !text-white'} text={"Login"} />
               </div>
             </div>
 
